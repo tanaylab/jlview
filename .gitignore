@@ -1,0 +1,20 @@
+dev/
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+CLAUDE.md
+.claude/
+
+# Compiled C code
+src/*.o
+src/*.so
+src/*.dll
+
+# R package build artifacts
+*.tar.gz
+*.Rcheck/
+
+# roxygen2 generated (NAMESPACE is committed but regenerated)
+# NAMESPACE
+.a5c/

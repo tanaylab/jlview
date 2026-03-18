@@ -1,0 +1,26 @@
+Package: jlview
+Title: Zero-Copy Julia to R Array Bridge via ALTREP
+Version: 0.1.0
+Authors@R: c(
+    person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-8458-9507")),    
+    person("Weizmann Institute of Science", role = "cph")
+  )
+Description: Provides zero-copy R views of Julia-owned arrays by
+    implementing ALTREP (Alternative Representations) classes that return
+    pointers directly into Julia's memory. The package integrates with 'JuliaCall'
+    and uses C-level finalizers for safe cross-runtime garbage collection.
+License: MIT + file LICENSE
+Depends:
+    R (>= 4.0.0)
+SystemRequirements: Julia (>= 1.6)
+Imports:
+    JuliaCall
+Suggests:
+    testthat (>= 3.0.0),
+    Matrix
+Config/testthat/edition: 3
+Encoding: UTF-8
+Language: en-US
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
