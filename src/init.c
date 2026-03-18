@@ -13,6 +13,8 @@ static const R_CallMethodDef callMethods[] = {
     {"C_jlview_info",             (DL_FUNC) &C_jlview_info,             1},
     {"C_jlview_set_gc_threshold", (DL_FUNC) &C_jlview_set_gc_threshold, 1},
     {"C_jlview_gc_pressure",      (DL_FUNC) &C_jlview_gc_pressure,      0},
+    {"C_jlview_create_index",     (DL_FUNC) &C_jlview_create_index,     4},
+    {"C_jlview_index_materialize",(DL_FUNC) &C_jlview_index_materialize,1},
     {NULL, NULL, 0}
 };
 
@@ -33,6 +35,8 @@ void R_init_jlview(DllInfo* dll) {
 
     /* Register ALTREP classes — must happen at load time (DllInfo* required) */
     jlview_init_real_class(dll);
+    jlview_init_integer_class(dll);
+    jlview_init_index_class(dll);
 }
 
 /* ===========================================================================

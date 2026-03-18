@@ -115,6 +115,8 @@ static R_altrep_class_t select_class(int eltcode) {
     switch (eltcode) {
     case JLVIEW_FLOAT64:
         return jlview_real_class;
+    case JLVIEW_INT32:
+        return jlview_integer_class;
     default:
         Rf_error("jlview: unsupported element type code %d", eltcode);
     }

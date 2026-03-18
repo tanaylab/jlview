@@ -56,6 +56,8 @@ extern void*       (*jl_array_ptr_ptr)(jl_value_t*);
  * Shared state (defined in their respective .c files)
  * --------------------------------------------------------------------------- */
 extern R_altrep_class_t jlview_real_class;
+extern R_altrep_class_t jlview_integer_class;
+extern R_altrep_class_t jlview_index_class;
 extern jl_value_t* jl_pin_func;
 extern jl_value_t* jl_unpin_func;
 extern int jlview_julia_is_alive;
@@ -65,6 +67,8 @@ extern pid_t jlview_init_pid;
  * ALTREP class registration
  * --------------------------------------------------------------------------- */
 void jlview_init_real_class(DllInfo* dll);
+void jlview_init_integer_class(DllInfo* dll);
+void jlview_init_index_class(DllInfo* dll);
 
 /* ---------------------------------------------------------------------------
  * GC pressure tracking
@@ -88,5 +92,8 @@ SEXP C_is_jlview(SEXP x);
 SEXP C_jlview_info(SEXP x);
 SEXP C_jlview_set_gc_threshold(SEXP bytes);
 SEXP C_jlview_gc_pressure(void);
+SEXP C_jlview_create_index(SEXP julia_extptr, SEXP pin_id_sexp,
+                            SEXP length_sexp, SEXP is_int64_sexp);
+SEXP C_jlview_index_materialize(SEXP x);
 
 #endif /* JLVIEW_H */

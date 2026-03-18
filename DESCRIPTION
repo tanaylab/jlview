@@ -15,10 +15,11 @@ Depends:
     R (>= 4.0.0)
 SystemRequirements: Julia (>= 1.6)
 Imports:
-    JuliaCall
+    JuliaCall,
+    Matrix,
+    methods
 Suggests:
-    testthat (>= 3.0.0),
-    Matrix
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US

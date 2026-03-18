@@ -152,4 +152,90 @@ function pinned_count()::Int
     end
 end
 
+# ── Sparse matrix support ──
+
+struct SparsePinInfo
+    nzval_pin::PinInfo
+    rowval_pin_id::UInt64
+    rowval_ptr::Ptr{Cvoid}
+    rowval_len::Int
+    rowval_is_int64::Bool
+    colptr_pin_id::UInt64
+    colptr_ptr::Ptr{Cvoid}
+    colptr_len::Int
+    colptr_is_int64::Bool
+    nrow::Int
+    ncol::Int
+end
+
+"""
+Pin a sparse index array (rowval or colptr) and return metadata for
+C_jlview_create_index. Returns (pin_id, length, is_int64) as a tuple.
+"""
+function pin_index(arr::Vector{Ti}) where Ti <: Integer
+    ptr = Ptr{Cvoid}(pointer(arr))
+    nb = sizeof(arr)
+    is_int64 = (Ti === Int64)
+
+    id = lock(PINNED_LOCK) do
+        id = (_next_pin_id[] += 1)
+        PINNED[id] = arr
+        PINNED_BYTES[id] = nb
+        id
+    end
+
+    return (id, length(arr), is_int64)
+end
+
+"""
+Extract the colptr field from a SparseMatrixCSC.
+"""
+_get_colptr(m::SparseMatrixCSC) = m.colptr
+
+function pin_sparse(matrix::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti}
+    # Pin nzval using existing pin() (handles type conversion)
+    nzval_info = pin(nonzeros(matrix))
+
+    # Pin rowval (indices) - just hold reference, no conversion
+    rowval = rowvals(matrix)
+    rowval_ptr = Ptr{Cvoid}(pointer(rowval))
+    rowval_nb = sizeof(rowval)
+    rowval_is_int64 = (Ti === Int64)
+
+    rowval_id = lock(PINNED_LOCK) do
+        id = (_next_pin_id[] += 1)
+        PINNED[id] = rowval
+        PINNED_BYTES[id] = rowval_nb
+        id
+    end
+
+    # Pin colptr
+    colptr = matrix.colptr
+    colptr_ptr = Ptr{Cvoid}(pointer(colptr))
+    colptr_nb = sizeof(colptr)
+    colptr_is_int64 = (Ti === Int64)
+
+    colptr_id = lock(PINNED_LOCK) do
+        id = (_next_pin_id[] += 1)
+        PINNED[id] = colptr
+        PINNED_BYTES[id] = colptr_nb
+        id
+    end
+
+    return SparsePinInfo(
+        nzval_info,
+        rowval_id, rowval_ptr, length(rowval), rowval_is_int64,
+        colptr_id, colptr_ptr, length(colptr), colptr_is_int64,
+        size(matrix, 1), size(matrix, 2)
+    )
+end
+
+function check_support(obj::SparseMatrixCSC)
+    T = eltype(obj)
+    if T in (Float64, Int32, UInt8, Float32, Int64, Int16)
+        return (true, string(T), 2)
+    end
+    return (false, string(T), 2)
+end
+
 end # module JlviewSupport

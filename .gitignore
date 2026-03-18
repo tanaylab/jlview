@@ -15,6 +15,4 @@ src/*.dll
 *.tar.gz
 *.Rcheck/
 
-# roxygen2 generated (NAMESPACE is committed but regenerated)
-# NAMESPACE
 .a5c/
