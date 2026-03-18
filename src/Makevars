@@ -1,2 +1,2 @@
-PKG_CFLAGS = -D_GNU_SOURCE
+PKG_CFLAGS = -D_GNU_SOURCE -Wall -pedantic
 PKG_LIBS = -ldl

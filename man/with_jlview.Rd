@@ -31,11 +31,12 @@ Creates a jlview object and ensures it is released when the scope exits,
 even if an error occurs. This prevents memory leaks from forgotten releases.
 }
 \examples{
-\dontrun{
-JuliaCall::julia_command("big = randn(100000)")
-result <- with_jlview(JuliaCall::julia_eval("big"), {
-  c(mean(.x), sd(.x))
-})
-# .x is automatically released here
+if (interactive()) {
+    JuliaCall::julia_setup()
+    JuliaCall::julia_command("big = randn(100000)")
+    result <- with_jlview(JuliaCall::julia_eval("big"), {
+        c(mean(.x), sd(.x))
+    })
+    # .x is automatically released here
 }
 }

@@ -11,6 +11,8 @@ Description: Provides zero-copy R views of Julia-owned arrays by
     pointers directly into Julia's memory. The package integrates with 'JuliaCall'
     and uses C-level finalizers for safe cross-runtime garbage collection.
 License: MIT + file LICENSE
+URL: https://github.com/tanaylab/jlview
+BugReports: https://github.com/tanaylab/jlview/issues
 Depends:
     R (>= 4.0.0)
 SystemRequirements: Julia (>= 1.6)

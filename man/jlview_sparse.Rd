@@ -29,10 +29,11 @@ The Julia-to-R index shift (1-based to 0-based) is handled lazily by the
 ALTREP index class.
 }
 \examples{
-\dontrun{
-JuliaCall::julia_command("using SparseArrays")
-m <- JuliaCall::julia_eval("sprand(Float64, 100, 50, 0.1)")
-s <- jlview_sparse(m)
-class(s) # "dgCMatrix"
+if (interactive()) {
+    JuliaCall::julia_setup()
+    JuliaCall::julia_command("using SparseArrays")
+    m <- JuliaCall::julia_eval("sprand(Float64, 100, 50, 0.1)")
+    s <- jlview_sparse(m)
+    class(s) # "dgCMatrix"
 }
 }

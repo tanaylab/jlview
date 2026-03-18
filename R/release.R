@@ -53,12 +53,13 @@ jlview_gc_pressure <- function() {
 #' @return The result of evaluating \code{expr}
 #' @export
 #' @examples
-#' \dontrun{
-#' JuliaCall::julia_command("big = randn(100000)")
-#' result <- with_jlview(JuliaCall::julia_eval("big"), {
-#'     c(mean(.x), sd(.x))
-#' })
-#' # .x is automatically released here
+#' if (interactive()) {
+#'     JuliaCall::julia_setup()
+#'     JuliaCall::julia_command("big = randn(100000)")
+#'     result <- with_jlview(JuliaCall::julia_eval("big"), {
+#'         c(mean(.x), sd(.x))
+#'     })
+#'     # .x is automatically released here
 #' }
 with_jlview <- function(julia_array, expr, writeable = FALSE, names = NULL, dimnames = NULL) {
     .x <- jlview(julia_array, writeable = writeable, names = names, dimnames = dimnames)

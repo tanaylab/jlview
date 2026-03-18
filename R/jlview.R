@@ -16,11 +16,12 @@
 #'   if the Julia type is not supported for zero-copy.
 #' @export
 #' @examples
-#' \dontrun{
-#' # Create a Julia array and view it in R without copying
-#' JuliaCall::julia_command("x = randn(1000)")
-#' x <- jlview(JuliaCall::julia_eval("x"))
-#' sum(x) # operates directly on Julia memory
+#' if (interactive()) {
+#'     JuliaCall::julia_setup()
+#'     # Create a Julia array and view it in R without copying
+#'     JuliaCall::julia_command("x = randn(1000)")
+#'     x <- jlview(JuliaCall::julia_eval("x"))
+#'     sum(x) # operates directly on Julia memory
 #' }
 jlview <- function(julia_array, writeable = FALSE, names = NULL, dimnames = NULL) {
     jlview_ensure_init()

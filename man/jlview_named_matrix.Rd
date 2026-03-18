@@ -17,11 +17,12 @@ Creates a zero-copy ALTREP view of a Julia NamedArray matrix,
 preserving row and column names as dimnames.
 }
 \examples{
-\dontrun{
-JuliaCall::julia_command("using NamedArrays")
-m <- JuliaCall::julia_eval('NamedArray(randn(3,2), (["a","b","c"], ["x","y"]))')
-x <- jlview_named_matrix(m)
-rownames(x) # returns c("a", "b", "c")
-colnames(x) # returns c("x", "y")
+if (interactive()) {
+    JuliaCall::julia_setup()
+    JuliaCall::julia_command("using NamedArrays")
+    m <- JuliaCall::julia_eval('NamedArray(randn(3,2), (["a","b","c"], ["x","y"]))')
+    x <- jlview_named_matrix(m)
+    rownames(x) # returns c("a", "b", "c")
+    colnames(x) # returns c("x", "y")
 }
 }

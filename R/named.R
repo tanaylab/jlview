@@ -7,11 +7,12 @@
 #' @return An ALTREP vector with names set from the Julia NamedArray
 #' @export
 #' @examples
-#' \dontrun{
-#' JuliaCall::julia_command("using NamedArrays")
-#' v <- JuliaCall::julia_eval('NamedArray([1.0, 2.0, 3.0], (["a", "b", "c"],))')
-#' x <- jlview_named_vector(v)
-#' names(x) # returns c("a", "b", "c")
+#' if (interactive()) {
+#'     JuliaCall::julia_setup()
+#'     JuliaCall::julia_command("using NamedArrays")
+#'     v <- JuliaCall::julia_eval('NamedArray([1.0, 2.0, 3.0], (["a", "b", "c"],))')
+#'     x <- jlview_named_vector(v)
+#'     names(x) # returns c("a", "b", "c")
 #' }
 jlview_named_vector <- function(julia_named_array) {
     jlview_ensure_init()
@@ -37,12 +38,13 @@ jlview_named_vector <- function(julia_named_array) {
 #' @return An ALTREP matrix with dimnames set from the Julia NamedArray
 #' @export
 #' @examples
-#' \dontrun{
-#' JuliaCall::julia_command("using NamedArrays")
-#' m <- JuliaCall::julia_eval('NamedArray(randn(3,2), (["a","b","c"], ["x","y"]))')
-#' x <- jlview_named_matrix(m)
-#' rownames(x) # returns c("a", "b", "c")
-#' colnames(x) # returns c("x", "y")
+#' if (interactive()) {
+#'     JuliaCall::julia_setup()
+#'     JuliaCall::julia_command("using NamedArrays")
+#'     m <- JuliaCall::julia_eval('NamedArray(randn(3,2), (["a","b","c"], ["x","y"]))')
+#'     x <- jlview_named_matrix(m)
+#'     rownames(x) # returns c("a", "b", "c")
+#'     colnames(x) # returns c("x", "y")
 #' }
 jlview_named_matrix <- function(julia_named_matrix) {
     jlview_ensure_init()
