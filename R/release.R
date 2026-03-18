@@ -39,3 +39,29 @@ jlview_set_gc_threshold <- function(bytes) {
 jlview_gc_pressure <- function() {
     .Call("C_jlview_gc_pressure", PACKAGE = "jlview")
 }
+
+#' Use a jlview object within a scope, releasing it on exit
+#'
+#' Creates a jlview object and ensures it is released when the scope exits,
+#' even if an error occurs. This prevents memory leaks from forgotten releases.
+#'
+#' @param julia_array A JuliaObject referencing a Julia array
+#' @param expr An expression to evaluate with the jlview object bound to \code{.x}
+#' @param writeable Passed to \code{\link{jlview}}
+#' @param names Passed to \code{\link{jlview}}
+#' @param dimnames Passed to \code{\link{jlview}}
+#' @return The result of evaluating \code{expr}
+#' @export
+#' @examples
+#' \dontrun{
+#' JuliaCall::julia_command("big = randn(100000)")
+#' result <- with_jlview(JuliaCall::julia_eval("big"), {
+#'     c(mean(.x), sd(.x))
+#' })
+#' # .x is automatically released here
+#' }
+with_jlview <- function(julia_array, expr, writeable = FALSE, names = NULL, dimnames = NULL) {
+    .x <- jlview(julia_array, writeable = writeable, names = names, dimnames = dimnames)
+    on.exit(jlview_release(.x), add = TRUE)
+    eval(substitute(expr))
+}

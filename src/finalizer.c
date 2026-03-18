@@ -17,6 +17,10 @@ void*       (*jl_array_ptr_ptr)(jl_value_t*) = NULL;
 /* Cached JlviewSupport function pointers */
 jl_value_t* jl_pin_func = NULL;
 jl_value_t* jl_unpin_func = NULL;
+jl_value_t* jl_sum_func = NULL;
+jl_value_t* jl_minimum_func = NULL;
+jl_value_t* jl_maximum_func = NULL;
+double (*jl_unbox_float64_ptr)(jl_value_t*) = NULL;
 
 /* Runtime state */
 int jlview_julia_is_alive = 0;
@@ -49,6 +53,12 @@ SEXP C_jlview_init_runtime(void) {
                  "Is JlviewSupport loaded?");
     }
 
+    /* Resolve summary statistic functions for ALTREP Sum/Min/Max */
+    jl_sum_func = jl_eval_string_ptr("JlviewSupport.pinned_sum");
+    jl_minimum_func = jl_eval_string_ptr("JlviewSupport.pinned_minimum");
+    jl_maximum_func = jl_eval_string_ptr("JlviewSupport.pinned_maximum");
+    LOAD_JL_SYMBOL(jl_unbox_float64_ptr, "jl_unbox_float64");
+
     return R_NilValue;
 }
 
@@ -60,6 +70,9 @@ SEXP C_jlview_shutdown(void) {
     jlview_julia_is_alive = 0;
     jl_pin_func = NULL;
     jl_unpin_func = NULL;
+    jl_sum_func = NULL;
+    jl_minimum_func = NULL;
+    jl_maximum_func = NULL;
     return R_NilValue;
 }
 
@@ -104,6 +117,11 @@ void jlview_pointer_finalizer(SEXP extptr) {
  * --------------------------------------------------------------------------- */
 SEXP C_jlview_release(SEXP x) {
     SEXP extptr = R_altrep_data1(x);
+    SEXP pin_id_sexp = R_ExternalPtrTag(extptr);
+    if (pin_id_sexp == R_NilValue) {
+        Rf_warning("jlview_release: object was already released");
+        return R_NilValue;
+    }
     jlview_pointer_finalizer(extptr);
     return R_NilValue;
 }

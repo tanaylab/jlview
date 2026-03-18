@@ -33,7 +33,7 @@ static SEXP jlview_integer_Duplicate(SEXP x, Rboolean deep) {
     R_xlen_t n = jlview_integer_Length(x);
     SEXP result = PROTECT(Rf_allocVector(INTSXP, n));
     const int* src = (const int*)jlview_integer_Dataptr_or_null(x);
-    if (src == NULL) Rf_error("jlview: data has been released");
+    if (src == NULL) Rf_error("jlview: cannot copy — this object was released. Create a new view with jlview().");
     memcpy(INTEGER(result), src, n * sizeof(int));
     /* Copy attributes (dim, dimnames, names, class) from ALTREP to materialized vec */
     Rf_copyMostAttrib(x, result);
@@ -70,7 +70,7 @@ static void* jlview_integer_Dataptr(SEXP x, Rboolean writeable) {
     SEXP extptr = R_altrep_data1(x);
     void* ptr = R_ExternalPtrAddr(extptr);
     if (ptr == NULL) {
-        Rf_error("jlview: data has been released (use jlview_release() only when done)");
+        Rf_error("jlview: cannot access data — this object was released via jlview_release(). Create a new view with jlview().");
     }
 
     /* If writeable requested on a read-only view, we must NOT let R write
@@ -109,13 +109,13 @@ static const void* jlview_integer_Dataptr_or_null(SEXP x) {
 
 static int jlview_integer_Elt(SEXP x, R_xlen_t i) {
     const int* ptr = (const int*)jlview_integer_Dataptr_or_null(x);
-    if (ptr == NULL) Rf_error("jlview: data has been released");
+    if (ptr == NULL) Rf_error("jlview: cannot access data — this object was released via jlview_release(). Create a new view with jlview().");
     return ptr[i];
 }
 
 static R_xlen_t jlview_integer_Get_region(SEXP x, R_xlen_t i, R_xlen_t n, int* buf) {
     const int* ptr = (const int*)jlview_integer_Dataptr_or_null(x);
-    if (ptr == NULL) Rf_error("jlview: data has been released");
+    if (ptr == NULL) Rf_error("jlview: cannot access data — this object was released via jlview_release(). Create a new view with jlview().");
     R_xlen_t len = jlview_integer_Length(x);
     R_xlen_t ncopy = (i + n > len) ? len - i : n;
     memcpy(buf, ptr + i, ncopy * sizeof(int));

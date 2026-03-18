@@ -60,6 +60,10 @@ extern R_altrep_class_t jlview_integer_class;
 extern R_altrep_class_t jlview_index_class;
 extern jl_value_t* jl_pin_func;
 extern jl_value_t* jl_unpin_func;
+extern jl_value_t* jl_sum_func;
+extern jl_value_t* jl_minimum_func;
+extern jl_value_t* jl_maximum_func;
+extern double (*jl_unbox_float64_ptr)(jl_value_t*);
 extern int jlview_julia_is_alive;
 extern pid_t jlview_init_pid;
 

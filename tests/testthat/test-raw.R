@@ -1,0 +1,23 @@
+test_that("UInt8 arrays are converted to integer via jlview", {
+    skip_if(!JULIA_AVAILABLE, "Julia not available")
+    JuliaCall::julia_command("_raw_test = UInt8[0, 1, 127, 255]")
+    jl <- JuliaCall::julia_eval("_raw_test", need_return = "Julia")
+    x <- jlview(jl)
+    expect_true(is_jlview(x))
+    expect_equal(x[1], 0L)
+    expect_equal(x[2], 1L)
+    expect_equal(x[3], 127L)
+    expect_equal(x[4], 255L)
+    expect_true(is.integer(x))
+})
+
+test_that("UInt8 matrix works via jlview", {
+    skip_if(!JULIA_AVAILABLE, "Julia not available")
+    JuliaCall::julia_command("_raw_mat = UInt8[1 2; 3 4]")
+    jl <- JuliaCall::julia_eval("_raw_mat", need_return = "Julia")
+    x <- jlview(jl)
+    expect_true(is_jlview(x))
+    expect_equal(dim(x), c(2L, 2L))
+    expect_equal(x[1, 1], 1L)
+    expect_equal(x[2, 2], 4L)
+})

@@ -82,6 +82,11 @@ function pin(array::Array{Int16,N}) where N
     return pin(converted)
 end
 
+function pin(array::Array{UInt8,N}) where N
+    converted = Array{Int32}(array)
+    return pin(converted)
+end
+
 # Bool is NOT handled by pin(). Bool arrays use the fallback path in R
 # (julia_call("collect", ..., need_return = "R") → standard LGLSXP copy).
 # See §6.4: layout is incompatible, copy is unavoidable, no ALTREP benefit.
@@ -128,7 +133,7 @@ function check_support(obj)
     # Conversion types (one copy in Julia, then zero-copy to R)
     # Bool excluded: layout incompatible (1 byte vs 4 bytes), no ALTREP benefit.
     # Falls through to JuliaCall's collect path which produces LGLSXP.
-    if T in (Float32, Int64, Int16)
+    if T in (Float32, Int64, Int16, UInt8)
         return (true, string(T), N)
     end
     return (false, string(T), N)
@@ -232,10 +237,30 @@ end
 
 function check_support(obj::SparseMatrixCSC)
     T = eltype(obj)
-    if T in (Float64, Int32, Float32, Int64, Int16)
+    if T in (Float64, Int32, Float32, Int64, Int16, UInt8)
         return (true, string(T), 2)
     end
     return (false, string(T), 2)
+end
+
+# ── Summary statistics (called from C ALTREP Sum/Min/Max methods) ──
+
+function pinned_sum(id::UInt64)::Float64
+    arr = lock(PINNED_LOCK) do; get(PINNED, id, nothing); end
+    arr === nothing && error("array not pinned")
+    return sum(Float64, arr)
+end
+
+function pinned_minimum(id::UInt64)::Float64
+    arr = lock(PINNED_LOCK) do; get(PINNED, id, nothing); end
+    arr === nothing && error("array not pinned")
+    return Float64(minimum(arr))
+end
+
+function pinned_maximum(id::UInt64)::Float64
+    arr = lock(PINNED_LOCK) do; get(PINNED, id, nothing); end
+    arr === nothing && error("array not pinned")
+    return Float64(maximum(arr))
 end
 
 end # module JlviewSupport
