@@ -86,7 +86,8 @@ void jlview_pointer_finalizer(SEXP extptr);
  * --------------------------------------------------------------------------- */
 SEXP C_jlview_init_runtime(void);
 SEXP C_jlview_shutdown(void);
-SEXP C_jlview_create(SEXP julia_array_sexp, SEXP writeable_sexp);
+SEXP C_jlview_create(SEXP julia_array_sexp, SEXP writeable_sexp,
+                     SEXP names_sexp, SEXP dimnames_sexp);
 SEXP C_jlview_release(SEXP x);
 SEXP C_is_jlview(SEXP x);
 SEXP C_jlview_info(SEXP x);

@@ -121,8 +121,8 @@ function check_support(obj)
     T = eltype(arr)
     N = ndims(arr)
 
-    # Direct zero-copy types
-    if T in (Float64, Int32, UInt8)
+    # Direct zero-copy types (UInt8/RAWSXP not yet implemented in C layer)
+    if T in (Float64, Int32)
         return (true, string(T), N)
     end
     # Conversion types (one copy in Julia, then zero-copy to R)
@@ -232,7 +232,7 @@ end
 
 function check_support(obj::SparseMatrixCSC)
     T = eltype(obj)
-    if T in (Float64, Int32, UInt8, Float32, Int64, Int16)
+    if T in (Float64, Int32, Float32, Int64, Int16)
         return (true, string(T), 2)
     end
     return (false, string(T), 2)

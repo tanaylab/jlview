@@ -22,9 +22,8 @@ jlview_named_vector <- function(julia_named_array) {
         need_return = "R"
     )
 
-    # Create zero-copy view of the underlying data
-    result <- jlview(julia_named_array)
-    names(result) <- names_vec
+    # Create zero-copy view with names attached atomically (no COW)
+    result <- jlview(julia_named_array, names = names_vec)
 
     return(result)
 }
@@ -58,9 +57,8 @@ jlview_named_matrix <- function(julia_named_matrix) {
         need_return = "R"
     )
 
-    # Create zero-copy view of the underlying data
-    result <- jlview(julia_named_matrix)
-    dimnames(result) <- list(rownames, colnames)
+    # Create zero-copy view with dimnames attached atomically (no COW)
+    result <- jlview(julia_named_matrix, dimnames = list(rownames, colnames))
 
     return(result)
 }

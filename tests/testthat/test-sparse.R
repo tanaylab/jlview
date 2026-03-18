@@ -24,9 +24,11 @@ test_that("jlview_sparse produces correct dense values", {
     result <- jlview_sparse(jl_sp)
 
     expected <- matrix(
-        c(1, 0, 0,
-          0, 2, 0,
-          4, 0, 3),
+        c(
+            1, 0, 0,
+            0, 2, 0,
+            4, 0, 3
+        ),
         nrow = 3, ncol = 3
     )
 
@@ -68,9 +70,11 @@ test_that("jlview_sparse matrix survives saveRDS/readRDS roundtrip", {
     expect_equal(ncol(loaded), 3L)
 
     expected <- matrix(
-        c(1, 0, 0,
-          0, 2, 0,
-          4, 0, 3),
+        c(
+            1, 0, 0,
+            0, 2, 0,
+            4, 0, 3
+        ),
         nrow = 3, ncol = 3
     )
     expect_equal(as.matrix(loaded), expected)

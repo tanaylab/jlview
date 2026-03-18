@@ -7,7 +7,7 @@
 static const R_CallMethodDef callMethods[] = {
     {"C_jlview_init_runtime",     (DL_FUNC) &C_jlview_init_runtime,     0},
     {"C_jlview_shutdown",         (DL_FUNC) &C_jlview_shutdown,         0},
-    {"C_jlview_create",           (DL_FUNC) &C_jlview_create,           2},
+    {"C_jlview_create",           (DL_FUNC) &C_jlview_create,           4},
     {"C_jlview_release",          (DL_FUNC) &C_jlview_release,          1},
     {"C_is_jlview",               (DL_FUNC) &C_is_jlview,               1},
     {"C_jlview_info",             (DL_FUNC) &C_jlview_info,             1},

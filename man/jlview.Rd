@@ -4,13 +4,19 @@
 \alias{jlview}
 \title{Create a zero-copy R view of a Julia array}
 \usage{
-jlview(julia_array, writeable = FALSE)
+jlview(julia_array, writeable = FALSE, names = NULL, dimnames = NULL)
 }
 \arguments{
 \item{julia_array}{A JuliaObject referencing a Julia array}
 
 \item{writeable}{If \code{TRUE}, allow R to write directly to Julia's memory.
 Use with caution — this enables shared mutation. Default \code{FALSE}.}
+
+\item{names}{Optional character vector of names to attach to the result.
+Attached atomically during construction to avoid ALTREP materialization.}
+
+\item{dimnames}{Optional list of dimnames to attach to the result.
+Attached atomically during construction to avoid ALTREP materialization.}
 }
 \value{
 An ALTREP vector backed by Julia memory, or a standard R vector

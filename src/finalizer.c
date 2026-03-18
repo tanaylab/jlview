@@ -136,7 +136,8 @@ static R_altrep_class_t select_class(int eltcode) {
  *   To recover the Julia value: dereference the Ref.
  *   In C: *(jl_value_t**)R_ExternalPtrAddr(sexp)
  * --------------------------------------------------------------------------- */
-SEXP C_jlview_create(SEXP julia_array_sexp, SEXP writeable_sexp) {
+SEXP C_jlview_create(SEXP julia_array_sexp, SEXP writeable_sexp,
+                     SEXP names_sexp, SEXP dimnames_sexp) {
     /* 1. Extract the jl_value_t* from JuliaCall's JuliaObject */
     void* ref_ptr = R_ExternalPtrAddr(julia_array_sexp);
     if (ref_ptr == NULL) {
@@ -210,6 +211,14 @@ SEXP C_jlview_create(SEXP julia_array_sexp, SEXP writeable_sexp) {
         }
         Rf_setAttrib(result, R_DimSymbol, rdims);
         UNPROTECT(1);
+    }
+
+    /* 9. Set names/dimnames atomically (refcount is 0 here — no COW) */
+    if (dimnames_sexp != R_NilValue) {
+        Rf_setAttrib(result, R_DimNamesSymbol, dimnames_sexp);
+    }
+    if (names_sexp != R_NilValue) {
+        Rf_setAttrib(result, R_NamesSymbol, names_sexp);
     }
 
     UNPROTECT(6);  /* pin_id_tag, extptr, len_sexp, meta_int, data2, result */

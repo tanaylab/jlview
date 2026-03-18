@@ -8,6 +8,10 @@
 #' @param julia_array A JuliaObject referencing a Julia array
 #' @param writeable If `TRUE`, allow R to write directly to Julia's memory.
 #'   Use with caution — this enables shared mutation. Default `FALSE`.
+#' @param names Optional character vector of names to attach to the result.
+#'   Attached atomically during construction to avoid ALTREP materialization.
+#' @param dimnames Optional list of dimnames to attach to the result.
+#'   Attached atomically during construction to avoid ALTREP materialization.
 #' @return An ALTREP vector backed by Julia memory, or a standard R vector
 #'   if the Julia type is not supported for zero-copy.
 #' @export
@@ -18,7 +22,7 @@
 #' x <- jlview(JuliaCall::julia_eval("x"))
 #' sum(x) # operates directly on Julia memory
 #' }
-jlview <- function(julia_array, writeable = FALSE) {
+jlview <- function(julia_array, writeable = FALSE, names = NULL, dimnames = NULL) {
     jlview_ensure_init()
 
     # Strip wrappers (ReadOnly, NamedArray, etc.)
@@ -50,7 +54,7 @@ jlview <- function(julia_array, writeable = FALSE) {
     # of an environment. We extract it here and pass the raw EXTPTRSXP to C.
     # Dims are set inside C from PinInfo — no extra JuliaCall round-trips.
     julia_extptr <- julia_array$id
-    result <- .Call("C_jlview_create", julia_extptr, writeable, PACKAGE = "jlview")
+    result <- .Call("C_jlview_create", julia_extptr, writeable, names, dimnames, PACKAGE = "jlview")
 
     return(result)
 }
