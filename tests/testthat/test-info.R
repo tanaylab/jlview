@@ -131,31 +131,19 @@ test_that("materialized is FALSE initially", {
     expect_false(info$materialized)
 })
 
-test_that("materialized becomes TRUE after COW write on read-only view", {
+test_that("R subassignment replaces jlview with standard vector (COW)", {
     skip_if(!JULIA_AVAILABLE, "Julia not available")
 
     JuliaCall::julia_command("_info_mat = collect(1.0:10.0)")
     jl_vec <- JuliaCall::julia_eval("_info_mat", need_return = "Julia")
     x <- jlview(jl_vec)
 
-    # Trigger COW by writing to a read-only view
+    # R's [<- always duplicates ALTREP objects, replacing them with standard vectors.
+    # After subassignment, x is no longer a jlview.
     x[1] <- 999.0
 
-    info <- jlview_info(x)
-    expect_true(info$materialized)
-})
-
-test_that("materialized stays FALSE after write to writeable view", {
-    skip_if(!JULIA_AVAILABLE, "Julia not available")
-
-    JuliaCall::julia_command("_info_wrt_mat = collect(1.0:10.0)")
-    jl_vec <- JuliaCall::julia_eval("_info_wrt_mat", need_return = "Julia")
-    x <- jlview(jl_vec, writeable = TRUE)
-
-    x[1] <- 999.0
-
-    info <- jlview_info(x)
-    expect_false(info$materialized)
+    expect_false(is_jlview(x))
+    expect_equal(x[1], 999.0)
 })
 
 test_that("all info fields are consistent for a matrix", {
