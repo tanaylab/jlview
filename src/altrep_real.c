@@ -73,22 +73,18 @@ static void* jlview_real_Dataptr(SEXP x, Rboolean writeable) {
         Rf_error("jlview: cannot access data — this object was released via jlview_release(). Create a new view with jlview().");
     }
 
-    /* If writeable requested on a read-only view, we must NOT let R write
-     * into Julia's memory. Materialize into a cached R vector.
-     * (R's COW only calls Duplicate when refcount > 1. When refcount == 1,
-     *  R calls Dataptr(TRUE) and writes directly. We must intercept this.) */
-    int is_writeable = INTEGER(VECTOR_ELT(meta_list, 1))[0];
-
-    if (writeable && !is_writeable) {
-        /* Materialize: allocate R vector, copy data, cache in data2 */
-        R_xlen_t n = jlview_real_Length(x);
-        cached = PROTECT(Rf_allocVector(REALSXP, n));
-        memcpy(REAL(cached), ptr, n * sizeof(double));
-        SET_VECTOR_ELT(meta_list, 2, cached);
-        UNPROTECT(1);
-        return REAL(cached);
-    }
-
+    /* Return the Julia pointer for both read and write requests.
+     *
+     * R's REAL(x) macro calls Dataptr(x, TRUE) — requesting writeable access —
+     * even for read-only operations like colSums, rowSums, colMeans, apply, %*%.
+     * If we materialized on Dataptr(TRUE), these common operations would copy
+     * the entire array into R's heap, defeating zero-copy.
+     *
+     * Safety: R's [<- subassignment always calls Duplicate() first for ALTREP
+     * objects (confirmed empirically), so it never writes through this pointer
+     * without duplicating. The only risk is rogue C code calling DATAPTR(x) and
+     * writing without checking refcount — an R API violation that doesn't happen
+     * in practice. */
     return ptr;
 }
 

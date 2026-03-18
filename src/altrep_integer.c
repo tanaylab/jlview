@@ -73,22 +73,11 @@ static void* jlview_integer_Dataptr(SEXP x, Rboolean writeable) {
         Rf_error("jlview: cannot access data — this object was released via jlview_release(). Create a new view with jlview().");
     }
 
-    /* If writeable requested on a read-only view, we must NOT let R write
-     * into Julia's memory. Materialize into a cached R vector.
-     * (R's COW only calls Duplicate when refcount > 1. When refcount == 1,
-     *  R calls Dataptr(TRUE) and writes directly. We must intercept this.) */
-    int is_writeable = INTEGER(VECTOR_ELT(meta_list, 1))[0];
-
-    if (writeable && !is_writeable) {
-        /* Materialize: allocate R vector, copy data, cache in data2 */
-        R_xlen_t n = jlview_integer_Length(x);
-        cached = PROTECT(Rf_allocVector(INTSXP, n));
-        memcpy(INTEGER(cached), ptr, n * sizeof(int));
-        SET_VECTOR_ELT(meta_list, 2, cached);
-        UNPROTECT(1);
-        return INTEGER(cached);
-    }
-
+    /* Return the Julia pointer for both read and write requests.
+     * See altrep_real.c Dataptr for full rationale. In short: R's INTEGER(x)
+     * calls Dataptr(TRUE) even for read-only ops (colSums, rowSums, etc.).
+     * Materializing here would defeat zero-copy for all common operations.
+     * R's [<- always duplicates ALTREP first, so writes never reach here. */
     return ptr;
 }
 
