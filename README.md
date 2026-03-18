@@ -97,15 +97,6 @@ jlview_release(m)
 | `Array{Bool}`    | `logical`   | Copy (layout incompatible)       |
 | `String[]`       | `character` | Copy (layout incompatible)       |
 
-## Integration with dafr
-
-jlview is used by [dafr](https://github.com/tanaylab/dafr) to provide
-zero-copy access to
-[DataAxesFormats.jl](https://github.com/tanaylab/DataAxesFormats.jl)
-data. When using dafr with jlview installed, `get_vector()`,
-`get_matrix()`, and sparse matrix operations automatically use zero-copy
-where possible.
-
 ## How It Works
 
 jlview uses R’s
