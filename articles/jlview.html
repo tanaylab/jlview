@@ -64,10 +64,10 @@
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>When working with Julia arrays from R via JuliaCall, every transfer
-copies data. For a 10,000 x 1,000 Float64 matrix, that means allocating
-76 MB on the R side and spending time on a memcpy. If you are iterating
-on exploratory analysis or building a pipeline that shuttles arrays back
-and forth, those copies add up fast.</p>
+copies data. For a 50,000 x 25,000 Float64 matrix (~9.3 GB), that means
+allocating 9.3 GB on the R side and spending seconds on the copy. If you
+are iterating on exploratory analysis or building a pipeline that
+shuttles arrays back and forth, those copies add up fast.</p>
 <p><strong>jlview</strong> eliminates that overhead using R’s ALTREP
 (Alternative Representations) framework. Instead of copying,
 <code><a href="../reference/jlview.html">jlview()</a></code> returns a lightweight R vector whose data pointer
@@ -83,22 +83,22 @@ Julia’s buffer with zero additional allocation.</p>
 <tbody>
 <tr class="odd">
 <td><strong>jlview (zero-copy)</strong></td>
-<td>0.02 ms</td>
-<td>0.1 MB</td>
+<td>38 ms</td>
+<td>0 MB</td>
 </tr>
 <tr class="even">
 <td><strong>copy (collect)</strong></td>
-<td>0.44 ms</td>
-<td>76.3 MB</td>
+<td>2.7 s</td>
+<td>9.3 GB</td>
 </tr>
 <tr class="odd">
 <td><strong>Improvement</strong></td>
-<td><strong>22.6x faster</strong></td>
-<td><strong>99.9% less</strong></td>
+<td><strong>72x faster</strong></td>
+<td><strong>100% less</strong></td>
 </tr>
 </tbody>
 </table>
-<p><em>Benchmark: 10K x 1K named Float64 matrix</em></p>
+<p><em>Benchmark: 50K x 25K Float64 matrix (9.3 GB)</em></p>
 </div>
 <div class="section level2">
 <h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
