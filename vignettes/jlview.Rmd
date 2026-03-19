@@ -18,9 +18,10 @@ knitr::opts_chunk$set(
 ## Introduction
 
 When working with Julia arrays from R via JuliaCall, every transfer copies data.
-For a 10,000 x 1,000 Float64 matrix, that means allocating 76 MB on the R side
-and spending time on a memcpy. If you are iterating on exploratory analysis or
-building a pipeline that shuttles arrays back and forth, those copies add up fast.
+For a 50,000 x 25,000 Float64 matrix (~9.3 GB), that means allocating 9.3 GB on
+the R side and spending seconds on the copy. If you are iterating on exploratory
+analysis or building a pipeline that shuttles arrays back and forth, those copies
+add up fast.
 
 **jlview** eliminates that overhead using R's ALTREP (Alternative
 Representations) framework. Instead of copying, `jlview()` returns a lightweight
@@ -30,11 +31,11 @@ additional allocation.
 
 | | Latency | R Memory |
 |---|---|---|
-| **jlview (zero-copy)** | 0.02 ms | 0.1 MB |
-| **copy (collect)** | 0.44 ms | 76.3 MB |
-| **Improvement** | **22.6x faster** | **99.9% less** |
+| **jlview (zero-copy)** | 38 ms | 0 MB |
+| **copy (collect)** | 2.7 s | 9.3 GB |
+| **Improvement** | **72x faster** | **100% less** |
 
-*Benchmark: 10K x 1K named Float64 matrix*
+*Benchmark: 50K x 25K Float64 matrix (9.3 GB)*
 
 ## Getting Started
 

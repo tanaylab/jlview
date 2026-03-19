@@ -13,13 +13,13 @@ jlview provides zero-copy R views of Julia-owned arrays using R’s ALTREP
 Julia and R, jlview returns lightweight R vectors that point directly
 into Julia’s memory.
 
-|                        | Latency   | R Memory          |
-|------------------------|-----------|-------------------|
-| **jlview (zero-copy)** | 0.02 ms   | 0.1 MB            |
-| **copy (collect)**     | 0.44 ms   | 76.3 MB           |
-| **Improvement**        | **22.6×** | **99.9% savings** |
+|                        | Latency | R Memory         |
+|------------------------|---------|------------------|
+| **jlview (zero-copy)** | 38 ms   | 0 MB             |
+| **copy (collect)**     | 2.7 s   | 9.3 GB           |
+| **Improvement**        | **72×** | **100% savings** |
 
-*Benchmark: 10K × 1K named Float64 matrix*
+*Benchmark: 50K × 25K Float64 matrix (9.3 GB)*
 
 ## Installation
 
