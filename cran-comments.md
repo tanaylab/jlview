@@ -1,9 +1,9 @@
 ## Test environments
 
-* macOS (GitHub Actions), R release, Julia 1.11 
-* Ubuntu (GitHub Actions), R release and R-devel 
-* Windows (R-hub), R release 
-* Local: RHEL 8, R 4.3.3, Julia 1.11 
+* macOS (GitHub Actions), R release, Julia 1.11
+* Ubuntu (GitHub Actions), R release and R-devel
+* Local: RHEL 8, R 4.3.3, Julia 1.11
+* R-hub: Linux (R-devel), Windows (R-devel), gcc-ASAN, clang-ASAN, clang-UBSAN, valgrind, LTO, rchk
 
 ## R CMD check results
 
