@@ -25,7 +25,7 @@ jlview_sparse(julia_sparse_matrix, lazy_indices = FALSE)
 
   Ignored. Retained for API compatibility only. Previously controlled
   lazy vs eager materialization of ALTREP index vectors, which have been
-  removed in favour of simple copy+shift in Julia.
+  removed in favor of simple copy+shift in Julia.
 
 ## Value
 
