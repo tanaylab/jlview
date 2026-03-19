@@ -167,15 +167,9 @@ Matrix::nnzero(s)
 ```
 
 The row indices (`i` slot) and column pointers (`p` slot) require a
-1-to-0 index shift (Julia is 1-based, dgCMatrix is 0-based). By default
-(`lazy_indices = FALSE`), these are eagerly materialized into standard R
-integer vectors after construction. This avoids repeated on-the-fly
-subtraction during element access and is recommended for matrices that
-will be read many times.
-
-If you are constructing many sparse matrices and only accessing them
-briefly, you can set `lazy_indices = TRUE` to keep the indices as lazy
-ALTREP views that compute the shift on demand.
+1-to-0 index shift (Julia is 1-based, dgCMatrix is 0-based). These are
+copied and shifted in Julia before being returned to R as plain integer
+vectors.
 
 ## Memory Management
 
@@ -191,7 +185,7 @@ means Julia memory is held as long as the R ALTREP object exists.
 
 2.  **GC pressure tracking** – jlview tracks total pinned bytes and
     reports them to R via `R_AdjustExternalMemory()`. When pinned memory
-    exceeds a threshold (default 2 GB), jlview forces an R
+    exceeds a threshold (default 10 GB), jlview forces an R
     [`gc()`](https://rdrr.io/r/base/gc.html) to reclaim stale ALTREP
     objects.
 
@@ -228,7 +222,7 @@ jlview_gc_pressure()
 # $pinned_bytes
 # [1] 80000000
 # $threshold
-# [1] 2147483648
+# [1] 10737418240
 
 # Lower the threshold to 500 MB
 jlview_set_gc_threshold(500e6)

@@ -271,13 +271,8 @@ Julia’s <code>nzval</code> array.</p>
 <span><span class="fu">Matrix</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/nnzero-methods.html" class="external-link">nnzero</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span></code></pre></div>
 <p>The row indices (<code>i</code> slot) and column pointers
 (<code>p</code> slot) require a 1-to-0 index shift (Julia is 1-based,
-dgCMatrix is 0-based). By default (<code>lazy_indices = FALSE</code>),
-these are eagerly materialized into standard R integer vectors after
-construction. This avoids repeated on-the-fly subtraction during element
-access and is recommended for matrices that will be read many times.</p>
-<p>If you are constructing many sparse matrices and only accessing them
-briefly, you can set <code>lazy_indices = TRUE</code> to keep the
-indices as lazy ALTREP views that compute the shift on demand.</p>
+dgCMatrix is 0-based). These are copied and shifted in Julia before
+being returned to R as plain integer vectors.</p>
 </div>
 <div class="section level2">
 <h2 id="memory-management">Memory Management<a class="anchor" aria-label="anchor" href="#memory-management"></a>
@@ -296,7 +291,7 @@ the wrapper.</p></li>
 <li><p><strong>GC pressure tracking</strong> – jlview tracks total
 pinned bytes and reports them to R via
 <code>R_AdjustExternalMemory()</code>. When pinned memory exceeds a
-threshold (default 2 GB), jlview forces an R <code><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc()</a></code> to
+threshold (default 10 GB), jlview forces an R <code><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc()</a></code> to
 reclaim stale ALTREP objects.</p></li>
 <li><p><strong>Explicit release</strong> – For tight control, call
 <code><a href="../reference/jlview_release.html">jlview_release()</a></code> to immediately unpin the array without
@@ -332,7 +327,7 @@ occurs:</p>
 <span><span class="co"># $pinned_bytes</span></span>
 <span><span class="co"># [1] 80000000</span></span>
 <span><span class="co"># $threshold</span></span>
-<span><span class="co"># [1] 2147483648</span></span>
+<span><span class="co"># [1] 10737418240</span></span>
 <span></span>
 <span><span class="co"># Lower the threshold to 500 MB</span></span>
 <span><span class="fu"><a href="../reference/jlview_set_gc_threshold.html">jlview_set_gc_threshold</a></span><span class="op">(</span><span class="fl">500e6</span><span class="op">)</span></span></code></pre></div>

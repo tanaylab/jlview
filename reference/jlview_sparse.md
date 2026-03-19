@@ -2,10 +2,10 @@
 
 Creates a
 [`dgCMatrix-class`](https://rdrr.io/pkg/Matrix/man/dgCMatrix-class.html)
-backed by zero-copy ALTREP vectors for the nonzero values (`x` slot) and
-ALTREP index vectors for the row indices (`i` slot) and column pointers
-(`p` slot). The Julia-to-R index shift (1-based to 0-based) is handled
-lazily by the ALTREP index class.
+backed by a zero-copy ALTREP vector for the nonzero values (`x` slot).
+The row indices (`i` slot) and column pointers (`p` slot) are copied and
+shifted from 1-based (Julia) to 0-based (R) indexing in Julia, then
+returned as plain R integer vectors.
 
 ## Usage
 
@@ -23,11 +23,9 @@ jlview_sparse(julia_sparse_matrix, lazy_indices = FALSE)
 
 - lazy_indices:
 
-  If `FALSE` (the default), the index vectors (`i` and `p`) are eagerly
-  materialized into standard R integer vectors after construction. This
-  avoids repeated lazy -1 shifts on every element access and is
-  recommended for matrices that will be accessed many times. If `TRUE`,
-  indices remain as lazy ALTREP views that compute the shift on-the-fly.
+  Ignored. Retained for API compatibility only. Previously controlled
+  lazy vs eager materialization of ALTREP index vectors, which have been
+  removed in favour of simple copy+shift in Julia.
 
 ## Value
 
