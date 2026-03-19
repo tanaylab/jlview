@@ -22,12 +22,12 @@ An ALTREP matrix with dimnames set from the Julia NamedArray
 ## Examples
 
 ``` r
-if (interactive()) {
-    JuliaCall::julia_setup()
-    JuliaCall::julia_command("using NamedArrays")
-    m <- JuliaCall::julia_eval('NamedArray(randn(3,2), (["a","b","c"], ["x","y"]))')
-    x <- jlview_named_matrix(m)
-    rownames(x) # returns c("a", "b", "c")
-    colnames(x) # returns c("x", "y")
-}
+if (FALSE) { # \dontrun{
+JuliaCall::julia_setup()
+JuliaCall::julia_command("using NamedArrays")
+m <- JuliaCall::julia_eval('NamedArray(randn(3,2), (["a","b","c"], ["x","y"]))')
+x <- jlview_named_matrix(m)
+rownames(x) # returns c("a", "b", "c")
+colnames(x) # returns c("x", "y")
+} # }
 ```

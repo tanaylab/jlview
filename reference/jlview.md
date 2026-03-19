@@ -40,11 +40,11 @@ Julia type is not supported for zero-copy.
 ## Examples
 
 ``` r
-if (interactive()) {
-    JuliaCall::julia_setup()
-    # Create a Julia array and view it in R without copying
-    JuliaCall::julia_command("x = randn(1000)")
-    x <- jlview(JuliaCall::julia_eval("x"))
-    sum(x) # operates directly on Julia memory
-}
+if (FALSE) { # \dontrun{
+JuliaCall::julia_setup()
+# Create a Julia array and view it in R without copying
+JuliaCall::julia_command("x = randn(1000)")
+x <- jlview(JuliaCall::julia_eval("x"))
+sum(x) # operates directly on Julia memory
+} # }
 ```

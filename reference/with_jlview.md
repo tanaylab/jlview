@@ -48,12 +48,12 @@ The result of evaluating `expr`
 ## Examples
 
 ``` r
-if (interactive()) {
-    JuliaCall::julia_setup()
-    JuliaCall::julia_command("big = randn(100000)")
-    result <- with_jlview(JuliaCall::julia_eval("big"), {
-        c(mean(.x), sd(.x))
-    })
-    # .x is automatically released here
-}
+if (FALSE) { # \dontrun{
+JuliaCall::julia_setup()
+JuliaCall::julia_command("big = randn(100000)")
+result <- with_jlview(JuliaCall::julia_eval("big"), {
+    c(mean(.x), sd(.x))
+})
+# .x is automatically released here
+} # }
 ```

@@ -55,9 +55,9 @@ Create a Julia vector and wrap it in an ALTREP view:
 JuliaCall::julia_command("v = randn(100_000)")
 x <- jlview(JuliaCall::julia_eval("v"))
 
-length(x)    # 100000
-sum(x)       # computed directly from Julia memory
-x[1:5]       # subsetting works as usual
+length(x) # 100000
+sum(x) # computed directly from Julia memory
+x[1:5] # subsetting works as usual
 ```
 
 ### Matrices
@@ -68,9 +68,9 @@ Two-dimensional Julia arrays become R matrices with proper dimensions:
 JuliaCall::julia_command("M = randn(1000, 500)")
 m <- jlview(JuliaCall::julia_eval("M"))
 
-dim(m)       # [1] 1000  500
-m[1:3, 1:3]  # subset rows and columns
-colSums(m)   # column sums, no copy
+dim(m) # [1] 1000  500
+m[1:3, 1:3] # subset rows and columns
+colSums(m) # column sums, no copy
 ```
 
 ### Verifying Zero-Copy
@@ -125,8 +125,8 @@ JuliaCall::julia_command("using NamedArrays")
 JuliaCall::julia_command('nv = NamedArray([10.0, 20.0, 30.0], (["a", "b", "c"],))')
 x <- jlview_named_vector(JuliaCall::julia_eval("nv"))
 
-names(x)     # [1] "a" "b" "c"
-x["b"]       # 20, still zero-copy for the data
+names(x) # [1] "a" "b" "c"
+x["b"] # 20, still zero-copy for the data
 ```
 
 ### Named Matrices
@@ -135,8 +135,8 @@ x["b"]       # 20, still zero-copy for the data
 JuliaCall::julia_command('nm = NamedArray(randn(3, 2), (["r1","r2","r3"], ["c1","c2"]))')
 m <- jlview_named_matrix(JuliaCall::julia_eval("nm"))
 
-rownames(m)  # [1] "r1" "r2" "r3"
-colnames(m)  # [1] "c1" "c2"
+rownames(m) # [1] "r1" "r2" "r3"
+colnames(m) # [1] "c1" "c2"
 m["r1", "c2"]
 ```
 
@@ -161,8 +161,8 @@ JuliaCall::julia_command("using SparseArrays")
 JuliaCall::julia_command("sp = sprand(Float64, 10000, 5000, 0.01)")
 s <- jlview_sparse(JuliaCall::julia_eval("sp"))
 
-class(s)     # [1] "dgCMatrix"
-dim(s)       # [1] 10000  5000
+class(s) # [1] "dgCMatrix"
+dim(s) # [1] 10000  5000
 Matrix::nnzero(s)
 ```
 
@@ -238,10 +238,10 @@ vector.
 
 ``` r
 x <- jlview(JuliaCall::julia_eval("collect(1.0:5.0)"))
-y <- x           # y and x share Julia memory, no copy
-sum(y)            # zero-copy read
+y <- x # y and x share Julia memory, no copy
+sum(y) # zero-copy read
 
-y[1] <- 999.0     # WRITE: triggers materialization
+y[1] <- 999.0 # WRITE: triggers materialization
 # y is now a standard R numeric vector (copy of Julia data, modified)
 # x still points to Julia memory, unchanged
 ```
@@ -264,7 +264,7 @@ saveRDS(x, "my_vector.rds")
 
 # In a new session (no Julia needed):
 y <- readRDS("my_vector.rds")
-class(y)  # "numeric" -- a plain R vector
+class(y) # "numeric" -- a plain R vector
 ```
 
 This means serialization always works correctly, but the zero-copy
