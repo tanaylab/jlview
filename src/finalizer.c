@@ -26,6 +26,21 @@ double (*jl_unbox_float64_ptr)(jl_value_t*) = NULL;
 int jlview_julia_is_alive = 0;
 pid_t jlview_init_pid = 0;
 
+/* Windows: module handle for libjulia.dll, used by LOAD_JL_SYMBOL macro */
+#ifdef _WIN32
+HMODULE jl_module_handle = NULL;
+
+void jlview_ensure_jl_module(void) {
+    if (jl_module_handle != NULL) return;
+    jl_module_handle = GetModuleHandle("libjulia.dll");
+    if (jl_module_handle == NULL)
+        jl_module_handle = GetModuleHandle("libjulia-internal.dll");
+    if (jl_module_handle == NULL)
+        Rf_error("jlview: cannot find loaded Julia library (libjulia.dll). "
+                 "Is julia_setup() initialized?");
+}
+#endif
+
 /* ---------------------------------------------------------------------------
  * C_jlview_init_runtime — resolve all Julia C API symbols at runtime.
  * Called from .onLoad AFTER JuliaCall::julia_setup() has loaded libjulia.
