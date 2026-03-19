@@ -13,7 +13,7 @@ jlview_sparse(julia_sparse_matrix, lazy_indices = FALSE)
 
 \item{lazy_indices}{Ignored. Retained for API compatibility only. Previously
 controlled lazy vs eager materialization of ALTREP index vectors, which
-have been removed in favour of simple copy+shift in Julia.}
+have been removed in favor of simple copy+shift in Julia.}
 }
 \value{
 A \code{\link[Matrix]{dgCMatrix-class}} sparse matrix.

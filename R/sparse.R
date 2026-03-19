@@ -11,7 +11,7 @@
 #'   (Float64, Float32, Int32, Int64, Int16, UInt8).
 #' @param lazy_indices Ignored. Retained for API compatibility only. Previously
 #'   controlled lazy vs eager materialization of ALTREP index vectors, which
-#'   have been removed in favour of simple copy+shift in Julia.
+#'   have been removed in favor of simple copy+shift in Julia.
 #' @return A \code{\link[Matrix]{dgCMatrix-class}} sparse matrix.
 #' @importClassesFrom Matrix dgCMatrix
 #' @export

@@ -1,4 +1,5 @@
 ALTREP
+Bool
 BugReports
 CMD
 COW
@@ -11,6 +12,7 @@ GC
 INTSXP
 jlview
 JuliaCall
+JuliaCall's
 JuliaObject
 LGLSXP
 mclapply
