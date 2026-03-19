@@ -85,6 +85,53 @@ function pin(array::Array{UInt8,N}) where N
     return pin(converted)
 end
 
+function pin(array::Array{UInt16,N}) where N
+    converted = Array{Int32}(array)
+    return pin(converted)
+end
+
+function pin(array::Array{UInt64,N}) where N
+    # Warn if values exceed Float64's exact integer range
+    if length(array) > 0
+        hi = maximum(array)
+        if hi > UInt64(2)^53 - 1
+            @warn "jlview: UInt64 array contains values outside Float64's exact " *
+                  "integer range (> 2^53-1). Precision loss will occur." *
+                  " max=$hi"
+        end
+    end
+    converted = Array{Float64}(array)
+    return pin(converted)
+end
+
+function pin(array::Array{UInt32,N}) where N
+    # UInt32 and Int32 have identical 4-byte memory layout.
+    # For UMI counts (always ≤ 2^31-1), the bit pattern is the same.
+    # Warn if any value exceeds typemax(Int32) — these will wrap to negative in R.
+    if length(array) > 0
+        hi = maximum(array)
+        if hi > typemax(Int32)
+            @warn "jlview: UInt32 array contains values > typemax(Int32) ($(Int64(hi))). " *
+                  "These will appear as negative integers in R."
+        end
+    end
+    # True zero-copy: pin the original UInt32 array but report as Int32.
+    # UInt32 and Int32 share the same 4-byte layout, so the C ALTREP layer
+    # reads the bytes correctly as INTSXP elements.
+    ptr = Ptr{Cvoid}(pointer(array))
+    nb = sizeof(array)
+    dims = collect(size(array))
+
+    id = lock(PINNED_LOCK) do
+        id = (_next_pin_id[] += 1)
+        PINNED[id] = array          # prevent GC of the original UInt32 array
+        PINNED_BYTES[id] = nb
+        id
+    end
+
+    return PinInfo(id, ptr, nb, ELTYPE_INT32, N, dims)
+end
+
 # Bool is NOT handled by pin(). Bool arrays use the fallback path in R
 # (julia_call("collect", ..., need_return = "R") → standard LGLSXP copy).
 # Layout is incompatible (1 byte vs 4 bytes), copy is unavoidable, no ALTREP benefit.
@@ -131,7 +178,7 @@ function check_support(obj)
     # Conversion types (one copy in Julia, then zero-copy to R)
     # Bool excluded: layout incompatible (1 byte vs 4 bytes), no ALTREP benefit.
     # Falls through to JuliaCall's collect path which produces LGLSXP.
-    if T in (Float32, Int64, Int16, UInt8)
+    if T in (Float32, Int64, Int16, UInt8, UInt16, UInt32, UInt64)
         return (true, string(T), N)
     end
     return (false, string(T), N)
@@ -189,7 +236,7 @@ end
 
 function check_support(obj::SparseMatrixCSC)
     T = eltype(obj)
-    if T in (Float64, Int32, Float32, Int64, Int16, UInt8)
+    if T in (Float64, Int32, Float32, Int64, Int16, UInt8, UInt16, UInt32, UInt64)
         return (true, string(T), 2)
     end
     return (false, string(T), 2)
