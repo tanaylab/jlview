@@ -48,17 +48,11 @@ extern void*       (*jl_array_ptr_ptr)(jl_value_t*);
  * --------------------------------------------------------------------------- */
 #ifdef _WIN32
 
-static HMODULE jl_module_handle = NULL;
-
-static void jlview_ensure_jl_module(void) {
-    if (jl_module_handle != NULL) return;
-    jl_module_handle = GetModuleHandle("libjulia.dll");
-    if (jl_module_handle == NULL)
-        jl_module_handle = GetModuleHandle("libjulia-internal.dll");
-    if (jl_module_handle == NULL)
-        Rf_error("jlview: cannot find loaded Julia library (libjulia.dll). "
-                 "Is julia_setup() initialized?");
-}
+/* jl_module_handle is defined in finalizer.c (the only file that
+ * calls LOAD_JL_SYMBOL). Declared extern here to keep the macro
+ * out of other translation units and avoid unused-function warnings. */
+extern HMODULE jl_module_handle;
+void jlview_ensure_jl_module(void);
 
 #define LOAD_JL_SYMBOL(var, name) do { \
     jlview_ensure_jl_module(); \
