@@ -108,20 +108,20 @@
 <span></span>
 <span><span class="co"># Zero-copy view — R sees Julia's memory directly</span></span>
 <span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/jlview.html">jlview</a></span><span class="op">(</span><span class="fu">JuliaCall</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/JuliaCall/man/julia_eval.html" class="external-link">julia_eval</a></span><span class="op">(</span><span class="st">"x"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span>    <span class="co"># [1] 10000  1000</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span>    <span class="co"># works natively, no data copied</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="co"># [1] 10000  1000</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="co"># works natively, no data copied</span></span>
 <span></span>
 <span><span class="co"># Named arrays are supported</span></span>
 <span><span class="fu">JuliaCall</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/JuliaCall/man/julia_command.html" class="external-link">julia_command</a></span><span class="op">(</span><span class="st">"using NamedArrays"</span><span class="op">)</span></span>
 <span><span class="fu">JuliaCall</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/JuliaCall/man/julia_command.html" class="external-link">julia_command</a></span><span class="op">(</span><span class="st">"named = NamedArray(randn(3), [\"a\", \"b\", \"c\"])"</span><span class="op">)</span></span>
 <span><span class="va">v</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/jlview_named_vector.html">jlview_named_vector</a></span><span class="op">(</span><span class="fu">JuliaCall</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/JuliaCall/man/julia_eval.html" class="external-link">julia_eval</a></span><span class="op">(</span><span class="st">"named"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">v</span><span class="op">[</span><span class="st">"a"</span><span class="op">]</span>    <span class="co"># access by name, still zero-copy</span></span>
+<span><span class="va">v</span><span class="op">[</span><span class="st">"a"</span><span class="op">]</span> <span class="co"># access by name, still zero-copy</span></span>
 <span></span>
 <span><span class="co"># Sparse matrices (zero-copy values, shifted indices)</span></span>
 <span><span class="fu">JuliaCall</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/JuliaCall/man/julia_command.html" class="external-link">julia_command</a></span><span class="op">(</span><span class="st">"using SparseArrays"</span><span class="op">)</span></span>
 <span><span class="fu">JuliaCall</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/JuliaCall/man/julia_command.html" class="external-link">julia_command</a></span><span class="op">(</span><span class="st">"sp = sprand(1000, 500, 0.01)"</span><span class="op">)</span></span>
 <span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/jlview_sparse.html">jlview_sparse</a></span><span class="op">(</span><span class="fu">JuliaCall</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/JuliaCall/man/julia_eval.html" class="external-link">julia_eval</a></span><span class="op">(</span><span class="st">"sp"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span>  <span class="co"># "dgCMatrix"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="co"># "dgCMatrix"</span></span>
 <span></span>
 <span><span class="co"># Explicit release to free Julia memory early</span></span>
 <span><span class="fu"><a href="reference/jlview_release.html">jlview_release</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span></code></pre></div>

@@ -37,20 +37,20 @@ JuliaCall::julia_command("x = randn(10000, 1000)")
 
 # Zero-copy view — R sees Julia's memory directly
 m <- jlview(JuliaCall::julia_eval("x"))
-dim(m)    # [1] 10000  1000
-sum(m)    # works natively, no data copied
+dim(m) # [1] 10000  1000
+sum(m) # works natively, no data copied
 
 # Named arrays are supported
 JuliaCall::julia_command("using NamedArrays")
 JuliaCall::julia_command("named = NamedArray(randn(3), [\"a\", \"b\", \"c\"])")
 v <- jlview_named_vector(JuliaCall::julia_eval("named"))
-v["a"]    # access by name, still zero-copy
+v["a"] # access by name, still zero-copy
 
 # Sparse matrices (zero-copy values, shifted indices)
 JuliaCall::julia_command("using SparseArrays")
 JuliaCall::julia_command("sp = sprand(1000, 500, 0.01)")
 s <- jlview_sparse(JuliaCall::julia_eval("sp"))
-class(s)  # "dgCMatrix"
+class(s) # "dgCMatrix"
 
 # Explicit release to free Julia memory early
 jlview_release(m)
