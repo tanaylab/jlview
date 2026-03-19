@@ -92,13 +92,20 @@ void jlview_pointer_finalizer(SEXP extptr) {
     /* Guard 2: Julia still alive?  Guard 3: same process (not a fork)? */
     if (jlview_julia_is_alive && getpid() == jlview_init_pid
             && jl_unpin_func != NULL) {
-        uint64_t pin_id = (uint64_t)REAL(pin_id_sexp)[0];
+        uint64_t pin_id;
+        memcpy(&pin_id, RAW(pin_id_sexp), sizeof(uint64_t));
 
         /* Call Julia directly via C API — safe during R GC.
          * jl_box_uint64 allocates on Julia's heap; this is safe because
          * R and Julia have independent allocators. */
         jl_value_t* jl_id = jl_box_uint64_ptr(pin_id);
         jl_value_t* jl_result = jl_call1_ptr(jl_unpin_func, jl_id);
+        if (jl_exception_occurred_ptr() || jl_result == NULL) {
+            /* Leak Julia memory rather than crash in finalizer */
+            R_ClearExternalPtr(extptr);
+            R_SetExternalPtrTag(extptr, R_NilValue);
+            return;
+        }
         size_t freed_bytes = (size_t)jl_unbox_int64_ptr(jl_result);
 
         jlview_track_free(freed_bytes);
@@ -181,6 +188,12 @@ SEXP C_jlview_create(SEXP julia_array_sexp, SEXP writeable_sexp,
      * data of a Julia Vector{Int}. Int is Int64 on 64-bit systems. */
     jl_value_t* jl_dims = jl_get_field_ptr(pin_info, "dims");
     int64_t* dims_data = (int64_t*)jl_array_ptr_ptr(jl_dims);
+
+    /* Check for any exceptions from field extraction */
+    if (jl_exception_occurred_ptr()) {
+        Rf_error("jlview: failed to extract PinInfo fields from Julia");
+    }
+
     int64_t total_len = 1;
     int dims[8];  /* max 8 dimensions (practical limit) */
     for (int d = 0; d < nd && d < 8; d++) {
@@ -192,11 +205,13 @@ SEXP C_jlview_create(SEXP julia_array_sexp, SEXP writeable_sexp,
      *    Store pin_id in the tag for the finalizer to use.
      *    This is the critical safety boundary: from here onward, if anything
      *    longjmps, R GC will collect extptr and the finalizer unpins. */
-    SEXP pin_id_tag = PROTECT(Rf_ScalarReal((double)pin_id));
+    SEXP pin_id_tag = PROTECT(Rf_allocVector(RAWSXP, sizeof(uint64_t)));
+    memcpy(RAW(pin_id_tag), &pin_id, sizeof(uint64_t));
     SEXP extptr = PROTECT(R_MakeExternalPtr(ptr, pin_id_tag, R_NilValue));
     R_RegisterCFinalizerEx(extptr, jlview_pointer_finalizer, TRUE);
 
-    /* 5. Track allocation (may trigger R_gc, which is safe — see §4.3.3) */
+    /* 5. Track allocation (may trigger R_gc, which is safe because
+     *    R and Julia allocators are independent) */
     jlview_track_alloc((size_t)nbytes);
 
     /* 6. Build data2: VECSXP of length 3
@@ -237,6 +252,17 @@ SEXP C_jlview_create(SEXP julia_array_sexp, SEXP writeable_sexp,
     }
     if (names_sexp != R_NilValue) {
         Rf_setAttrib(result, R_NamesSymbol, names_sexp);
+    }
+
+    /* 10. For non-writeable views, mark as not mutable so R always
+     *     duplicates before [<- subassignment. This is a defensive measure:
+     *     empirically R always duplicates ALTREP on [<- (due to refcount
+     *     increment during generic dispatch), but MARK_NOT_MUTABLE makes
+     *     the COW guarantee explicit and future-proof.
+     *     For writeable views, leave the refcount natural — allowing direct
+     *     writes to Julia memory when refcount=1 (the intended behavior). */
+    if (!is_writeable) {
+        MARK_NOT_MUTABLE(result);
     }
 
     UNPROTECT(6);  /* pin_id_tag, extptr, len_sexp, meta_int, data2, result */

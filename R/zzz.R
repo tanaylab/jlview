@@ -1,4 +1,4 @@
-#' @useDynLib jlview
+#' @useDynLib jlview, .registration = TRUE
 NULL
 
 # Package-level state: has the Julia runtime been initialized?
@@ -24,7 +24,10 @@ jlview_ensure_init <- function() {
     }
 
     # Include the Julia module (JuliaCall must already be initialized)
-    JuliaCall::julia_command(paste0('include("', jl_support_path, '")'))
+    # Use double quotes for Julia string literals (single quotes are char literals)
+    jl_escaped_path <- gsub("\\\\", "\\\\\\\\", jl_support_path)
+    jl_escaped_path <- gsub("\"", "\\\\\"", jl_escaped_path)
+    JuliaCall::julia_command(paste0('include("', jl_escaped_path, '")'))
 
     # Initialize C runtime (resolve Julia symbols, cache function pointers)
     .Call("C_jlview_init_runtime", PACKAGE = "jlview")

@@ -23,11 +23,9 @@ end
 # Element type codes for C layer
 const ELTYPE_FLOAT64 = 1
 const ELTYPE_INT32   = 2
-const ELTYPE_UINT8   = 3
 
 function eltype_code(::Type{Float64}) ELTYPE_FLOAT64 end
 function eltype_code(::Type{Int32})   ELTYPE_INT32 end
-function eltype_code(::Type{UInt8})   ELTYPE_UINT8 end
 
 """
 Pin an array in memory (prevent GC) and return metadata for ALTREP construction.
@@ -89,7 +87,7 @@ end
 
 # Bool is NOT handled by pin(). Bool arrays use the fallback path in R
 # (julia_call("collect", ..., need_return = "R") → standard LGLSXP copy).
-# See §6.4: layout is incompatible, copy is unavoidable, no ALTREP benefit.
+# Layout is incompatible (1 byte vs 4 bytes), copy is unavoidable, no ALTREP benefit.
 
 """
 Unpin an array, allowing Julia GC to collect it.
@@ -159,37 +157,16 @@ end
 
 # ── Sparse matrix support ──
 
-struct SparsePinInfo
-    nzval_pin::PinInfo
-    rowval_pin_id::UInt64
-    rowval_ptr::Ptr{Cvoid}
-    rowval_len::Int
-    rowval_is_int64::Bool
-    colptr_pin_id::UInt64
-    colptr_ptr::Ptr{Cvoid}
-    colptr_len::Int
-    colptr_is_int64::Bool
-    nrow::Int
-    ncol::Int
-end
-
 """
-Pin a sparse index array (rowval or colptr) and return metadata for
-C_jlview_create_index. Returns (pin_id, length, is_int64) as a tuple.
+Copy a Julia index array to a new Int32 array shifted by -1 (Julia 1-based to R 0-based).
+Used for sparse matrix rowval and colptr.
 """
-function pin_index(arr::Vector{Ti}) where Ti <: Integer
-    ptr = Ptr{Cvoid}(pointer(arr))
-    nb = sizeof(arr)
-    is_int64 = (Ti === Int64)
-
-    id = lock(PINNED_LOCK) do
-        id = (_next_pin_id[] += 1)
-        PINNED[id] = arr
-        PINNED_BYTES[id] = nb
-        id
+function copy_shift_index(arr::Vector{Ti}) where Ti <: Integer
+    result = Vector{Int32}(undef, length(arr))
+    @inbounds for i in eachindex(arr)
+        result[i] = Int32(arr[i] - 1)
     end
-
-    return (id, length(arr), is_int64)
+    return result
 end
 
 """
@@ -197,42 +174,17 @@ Extract the colptr field from a SparseMatrixCSC.
 """
 _get_colptr(m::SparseMatrixCSC) = m.colptr
 
-function pin_sparse(matrix::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti}
-    # Pin nzval using existing pin() (handles type conversion)
-    nzval_info = pin(nonzeros(matrix))
-
-    # Pin rowval (indices) - just hold reference, no conversion
-    rowval = rowvals(matrix)
-    rowval_ptr = Ptr{Cvoid}(pointer(rowval))
-    rowval_nb = sizeof(rowval)
-    rowval_is_int64 = (Ti === Int64)
-
-    rowval_id = lock(PINNED_LOCK) do
-        id = (_next_pin_id[] += 1)
-        PINNED[id] = rowval
-        PINNED_BYTES[id] = rowval_nb
-        id
+"""
+Get nzval as Float64 array. If already Float64, returns the same array.
+Otherwise converts to Float64 (one copy in Julia, then zero-copy to R).
+"""
+function sparse_nzval_as_float64(m::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti}
+    nzv = nonzeros(m)
+    if Tv === Float64
+        return nzv
+    else
+        return Vector{Float64}(nzv)
     end
-
-    # Pin colptr
-    colptr = matrix.colptr
-    colptr_ptr = Ptr{Cvoid}(pointer(colptr))
-    colptr_nb = sizeof(colptr)
-    colptr_is_int64 = (Ti === Int64)
-
-    colptr_id = lock(PINNED_LOCK) do
-        id = (_next_pin_id[] += 1)
-        PINNED[id] = colptr
-        PINNED_BYTES[id] = colptr_nb
-        id
-    end
-
-    return SparsePinInfo(
-        nzval_info,
-        rowval_id, rowval_ptr, length(rowval), rowval_is_int64,
-        colptr_id, colptr_ptr, length(colptr), colptr_is_int64,
-        size(matrix, 1), size(matrix, 2)
-    )
 end
 
 function check_support(obj::SparseMatrixCSC)

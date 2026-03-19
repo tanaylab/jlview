@@ -5,10 +5,17 @@
 #include <Rinternals.h>
 #include <R_ext/Altrep.h>
 #include <R_ext/Rdynload.h>
-#include <dlfcn.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <string.h>
+
+/* Platform-specific includes for dynamic symbol resolution and getpid() */
+#ifdef _WIN32
+#include <windows.h>
+#include <process.h>
+#else
+#include <dlfcn.h>
+#include <unistd.h>
+#endif
 
 /* Julia value type — opaque pointer, no Julia headers needed */
 typedef void* jl_value_t;
@@ -16,9 +23,9 @@ typedef void* jl_value_t;
 /* ---------------------------------------------------------------------------
  * Julia C API function pointers
  *
- * These are DEFINED in finalizer.c and resolved at runtime via dlsym()
- * in C_jlview_init_runtime(). JuliaCall loads libjulia with RTLD_GLOBAL,
- * making all Julia C API symbols globally visible.
+ * These are DEFINED in finalizer.c and resolved at runtime via
+ * dlsym() (Unix) or GetProcAddress() (Windows) in C_jlview_init_runtime().
+ * JuliaCall loads libjulia, making these symbols available.
  * --------------------------------------------------------------------------- */
 extern jl_value_t* (*jl_eval_string_ptr)(const char*);
 extern jl_value_t* (*jl_call1_ptr)(jl_value_t*, jl_value_t*);
@@ -35,7 +42,36 @@ extern void*       (*jl_array_ptr_ptr)(jl_value_t*);
  *
  * var:  function pointer variable to populate
  * name: string name of the symbol (e.g. "jl_eval_string")
+ *
+ * Unix:    dlsym(RTLD_DEFAULT, ...) — JuliaCall loads libjulia with RTLD_GLOBAL
+ * Windows: GetProcAddress on libjulia.dll module handle
  * --------------------------------------------------------------------------- */
+#ifdef _WIN32
+
+static HMODULE jl_module_handle = NULL;
+
+static void jlview_ensure_jl_module(void) {
+    if (jl_module_handle != NULL) return;
+    jl_module_handle = GetModuleHandle("libjulia.dll");
+    if (jl_module_handle == NULL)
+        jl_module_handle = GetModuleHandle("libjulia-internal.dll");
+    if (jl_module_handle == NULL)
+        Rf_error("jlview: cannot find loaded Julia library (libjulia.dll). "
+                 "Is julia_setup() initialized?");
+}
+
+#define LOAD_JL_SYMBOL(var, name) do { \
+    jlview_ensure_jl_module(); \
+    FARPROC sym_ = GetProcAddress(jl_module_handle, name); \
+    if (sym_ == NULL) { \
+        Rf_error("jlview: failed to resolve Julia symbol '%s'. " \
+                 "Is julia_setup() initialized?", name); \
+    } \
+    memcpy(&(var), &sym_, sizeof(var)); \
+} while(0)
+
+#else /* Unix */
+
 #define LOAD_JL_SYMBOL(var, name) do { \
     void* sym_ = dlsym(RTLD_DEFAULT, name); \
     if (sym_ == NULL) { \
@@ -45,19 +81,20 @@ extern void*       (*jl_array_ptr_ptr)(jl_value_t*);
     memcpy(&(var), &sym_, sizeof(var)); \
 } while(0)
 
+#endif /* _WIN32 */
+
 /* ---------------------------------------------------------------------------
  * Element type codes — used in metadata slot to identify Julia source type
  * --------------------------------------------------------------------------- */
 #define JLVIEW_FLOAT64 1
 #define JLVIEW_INT32   2
-#define JLVIEW_UINT8   3
+/* UInt8 arrays are converted to Int32 in Julia before reaching C — no UINT8 code needed */
 
 /* ---------------------------------------------------------------------------
  * Shared state (defined in their respective .c files)
  * --------------------------------------------------------------------------- */
 extern R_altrep_class_t jlview_real_class;
 extern R_altrep_class_t jlview_integer_class;
-extern R_altrep_class_t jlview_index_class;
 extern jl_value_t* jl_pin_func;
 extern jl_value_t* jl_unpin_func;
 extern jl_value_t* jl_sum_func;
@@ -72,7 +109,6 @@ extern pid_t jlview_init_pid;
  * --------------------------------------------------------------------------- */
 void jlview_init_real_class(DllInfo* dll);
 void jlview_init_integer_class(DllInfo* dll);
-void jlview_init_index_class(DllInfo* dll);
 
 /* ---------------------------------------------------------------------------
  * GC pressure tracking
@@ -97,8 +133,4 @@ SEXP C_is_jlview(SEXP x);
 SEXP C_jlview_info(SEXP x);
 SEXP C_jlview_set_gc_threshold(SEXP bytes);
 SEXP C_jlview_gc_pressure(void);
-SEXP C_jlview_create_index(SEXP julia_extptr, SEXP pin_id_sexp,
-                            SEXP length_sexp, SEXP is_int64_sexp);
-SEXP C_jlview_index_materialize(SEXP x);
-
 #endif /* JLVIEW_H */

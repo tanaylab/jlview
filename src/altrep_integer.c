@@ -77,7 +77,8 @@ static void* jlview_integer_Dataptr(SEXP x, Rboolean writeable) {
      * See altrep_real.c Dataptr for full rationale. In short: R's INTEGER(x)
      * calls Dataptr(TRUE) even for read-only ops (colSums, rowSums, etc.).
      * Materializing here would defeat zero-copy for all common operations.
-     * R's [<- always duplicates ALTREP first, so writes never reach here. */
+     * Non-writeable views use MARK_NOT_MUTABLE to force R to always
+     * duplicate before [<- subassignment, protecting Julia memory. */
     return ptr;
 }
 

@@ -1,7 +1,7 @@
 #include "jlview.h"
 
 static size_t jlview_pinned_bytes = 0;
-static size_t jlview_gc_threshold = 2ULL * 1024 * 1024 * 1024;  /* 2GB default */
+static size_t jlview_gc_threshold = 10ULL * 1024 * 1024 * 1024;  /* 10GB default */
 
 void jlview_track_alloc(size_t nbytes) {
     jlview_pinned_bytes += nbytes;

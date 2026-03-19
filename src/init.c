@@ -13,8 +13,6 @@ static const R_CallMethodDef callMethods[] = {
     {"C_jlview_info",             (DL_FUNC) &C_jlview_info,             1},
     {"C_jlview_set_gc_threshold", (DL_FUNC) &C_jlview_set_gc_threshold, 1},
     {"C_jlview_gc_pressure",      (DL_FUNC) &C_jlview_gc_pressure,      0},
-    {"C_jlview_create_index",     (DL_FUNC) &C_jlview_create_index,     4},
-    {"C_jlview_index_materialize",(DL_FUNC) &C_jlview_index_materialize,1},
     {NULL, NULL, 0}
 };
 
@@ -36,7 +34,6 @@ void R_init_jlview(DllInfo* dll) {
     /* Register ALTREP classes — must happen at load time (DllInfo* required) */
     jlview_init_real_class(dll);
     jlview_init_integer_class(dll);
-    jlview_init_index_class(dll);
 }
 
 /* ===========================================================================
@@ -61,6 +58,16 @@ SEXP C_is_jlview(SEXP x) {
     /* Check data2 has our expected 3-slot VECSXP structure */
     SEXP data2 = R_altrep_data2(x);
     if (TYPEOF(data2) != VECSXP || XLENGTH(data2) != 3)
+        return Rf_ScalarLogical(FALSE);
+
+    /* Verify metadata slot has expected structure */
+    SEXP meta = VECTOR_ELT(data2, 1);
+    if (TYPEOF(meta) != INTSXP || XLENGTH(meta) != 2)
+        return Rf_ScalarLogical(FALSE);
+
+    /* Verify eltcode is a known jlview type */
+    int eltcode = INTEGER(meta)[1];
+    if (eltcode != JLVIEW_FLOAT64 && eltcode != JLVIEW_INT32)
         return Rf_ScalarLogical(FALSE);
 
     return Rf_ScalarLogical(TRUE);
@@ -92,7 +99,6 @@ SEXP C_jlview_info(SEXP x) {
     switch (eltcode) {
     case JLVIEW_FLOAT64: type_str = "Float64"; break;
     case JLVIEW_INT32:   type_str = "Int32";   break;
-    case JLVIEW_UINT8:   type_str = "UInt8";   break;
     default:             type_str = "unknown";  break;
     }
 

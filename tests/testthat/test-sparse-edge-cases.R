@@ -94,56 +94,6 @@ test_that("1-row sparse matrix works", {
     expect_equal(as.matrix(result), matrix(c(1, 0, 2, 0, 3), nrow = 1, ncol = 5))
 })
 
-test_that("lazy_indices=TRUE creates valid dgCMatrix", {
-    skip_if(!JULIA_AVAILABLE, "Julia not available")
-
-    JuliaCall::julia_command("using SparseArrays")
-    jl_sp <- JuliaCall::julia_eval(
-        "sparse([1,2,3,1], [1,2,3,3], [1.0,2.0,3.0,4.0], 3, 3)",
-        need_return = "Julia"
-    )
-    result <- jlview_sparse(jl_sp, lazy_indices = TRUE)
-
-    expect_true(inherits(result, "dgCMatrix"))
-    expect_equal(nrow(result), 3L)
-    expect_equal(ncol(result), 3L)
-})
-
-test_that("lazy_indices=TRUE produces correct values", {
-    skip_if(!JULIA_AVAILABLE, "Julia not available")
-
-    JuliaCall::julia_command("using SparseArrays")
-    jl_sp <- JuliaCall::julia_eval(
-        "sparse([1,2,3,1], [1,2,3,3], [1.0,2.0,3.0,4.0], 3, 3)",
-        need_return = "Julia"
-    )
-    result <- jlview_sparse(jl_sp, lazy_indices = TRUE)
-
-    expected <- matrix(
-        c(
-            1, 0, 0,
-            0, 2, 0,
-            4, 0, 3
-        ),
-        nrow = 3, ncol = 3
-    )
-    expect_equal(as.matrix(result), expected)
-})
-
-test_that("lazy_indices=TRUE supports colSums and rowSums", {
-    skip_if(!JULIA_AVAILABLE, "Julia not available")
-
-    JuliaCall::julia_command("using SparseArrays")
-    jl_sp <- JuliaCall::julia_eval(
-        "sparse([1,2,3,1], [1,2,3,3], [1.0,2.0,3.0,4.0], 3, 3)",
-        need_return = "Julia"
-    )
-    result <- jlview_sparse(jl_sp, lazy_indices = TRUE)
-
-    expect_equal(Matrix::colSums(result), c(1, 2, 7))
-    expect_equal(Matrix::rowSums(result), c(5, 2, 3))
-})
-
 test_that("large sparse matrix with low density works", {
     skip_if(!JULIA_AVAILABLE, "Julia not available")
 

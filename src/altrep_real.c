@@ -80,11 +80,14 @@ static void* jlview_real_Dataptr(SEXP x, Rboolean writeable) {
      * If we materialized on Dataptr(TRUE), these common operations would copy
      * the entire array into R's heap, defeating zero-copy.
      *
-     * Safety: R's [<- subassignment always calls Duplicate() first for ALTREP
-     * objects (confirmed empirically), so it never writes through this pointer
-     * without duplicating. The only risk is rogue C code calling DATAPTR(x) and
-     * writing without checking refcount — an R API violation that doesn't happen
-     * in practice. */
+     * Safety for non-writeable views: C_jlview_create calls MARK_NOT_MUTABLE
+     * on non-writeable ALTREP objects, which sets refcount to REFCNTMAX. This
+     * ensures MAYBE_SHARED() always returns TRUE, so R's [<- always calls
+     * Duplicate() before writing — Julia memory is never mutated.
+     *
+     * For writeable views: refcount is left natural. When refcount=1, R's [<-
+     * may write directly through this pointer to Julia memory, which is the
+     * intended shared-mutation behavior for writeable=TRUE. */
     return ptr;
 }
 
@@ -148,7 +151,8 @@ static SEXP jlview_real_Sum(SEXP x, Rboolean narm) {
 
     SEXP pin_id_sexp = R_ExternalPtrTag(extptr);
     if (pin_id_sexp == R_NilValue) return NULL;
-    uint64_t pin_id = (uint64_t)REAL(pin_id_sexp)[0];
+    uint64_t pin_id;
+    memcpy(&pin_id, RAW(pin_id_sexp), sizeof(uint64_t));
 
     if (!jlview_julia_is_alive || jl_sum_func == NULL) return NULL;
 
@@ -169,7 +173,8 @@ static SEXP jlview_real_Min(SEXP x, Rboolean narm) {
 
     SEXP pin_id_sexp = R_ExternalPtrTag(extptr);
     if (pin_id_sexp == R_NilValue) return NULL;
-    uint64_t pin_id = (uint64_t)REAL(pin_id_sexp)[0];
+    uint64_t pin_id;
+    memcpy(&pin_id, RAW(pin_id_sexp), sizeof(uint64_t));
 
     if (!jlview_julia_is_alive || jl_minimum_func == NULL) return NULL;
 
@@ -190,7 +195,8 @@ static SEXP jlview_real_Max(SEXP x, Rboolean narm) {
 
     SEXP pin_id_sexp = R_ExternalPtrTag(extptr);
     if (pin_id_sexp == R_NilValue) return NULL;
-    uint64_t pin_id = (uint64_t)REAL(pin_id_sexp)[0];
+    uint64_t pin_id;
+    memcpy(&pin_id, RAW(pin_id_sexp), sizeof(uint64_t));
 
     if (!jlview_julia_is_alive || jl_maximum_func == NULL) return NULL;
 

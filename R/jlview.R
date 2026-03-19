@@ -50,7 +50,7 @@ jlview <- function(julia_array, writeable = FALSE, names = NULL, dimnames = NULL
 
     # Pin + create ALTREP atomically in C (no R-level window for leaks).
     # C_jlview_create calls jl_call1(pin, ...) internally, then immediately
-    # registers the finalizer. See PLAN.md §4.4 for the full safety analysis.
+    # registers the finalizer.
     # JuliaCall's JuliaObject stores the external pointer in the $id field
     # of an environment. We extract it here and pass the raw EXTPTRSXP to C.
     # Dims are set inside C from PinInfo — no extra JuliaCall round-trips.

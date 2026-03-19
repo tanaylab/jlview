@@ -11,22 +11,19 @@ jlview_sparse(julia_sparse_matrix, lazy_indices = FALSE)
 \code{SparseMatrixCSC}. The value type must be supported for zero-copy
 (Float64, Float32, Int32, Int64, Int16, UInt8).}
 
-\item{lazy_indices}{If \code{FALSE} (the default), the index vectors
-(\code{i} and \code{p}) are eagerly materialized into standard R integer
-vectors after construction. This avoids repeated lazy -1 shifts on every
-element access and is recommended for matrices that will be accessed
-many times. If \code{TRUE}, indices remain as lazy ALTREP views that
-compute the shift on-the-fly.}
+\item{lazy_indices}{Ignored. Retained for API compatibility only. Previously
+controlled lazy vs eager materialization of ALTREP index vectors, which
+have been removed in favour of simple copy+shift in Julia.}
 }
 \value{
 A \code{\link[Matrix]{dgCMatrix-class}} sparse matrix.
 }
 \description{
-Creates a \code{\link[Matrix]{dgCMatrix-class}} backed by zero-copy ALTREP
-vectors for the nonzero values (\code{x} slot) and ALTREP index vectors for
-the row indices (\code{i} slot) and column pointers (\code{p} slot).
-The Julia-to-R index shift (1-based to 0-based) is handled lazily by the
-ALTREP index class.
+Creates a \code{\link[Matrix]{dgCMatrix-class}} backed by a zero-copy ALTREP
+vector for the nonzero values (\code{x} slot). The row indices (\code{i}
+slot) and column pointers (\code{p} slot) are copied and shifted from
+1-based (Julia) to 0-based (R) indexing in Julia, then returned as plain
+R integer vectors.
 }
 \examples{
 if (interactive()) {

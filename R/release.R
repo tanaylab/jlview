@@ -7,7 +7,6 @@
 #' @return Invisible `NULL`
 #' @export
 jlview_release <- function(x) {
-    jlview_ensure_init()
     if (!is_jlview(x)) {
         warning("jlview_release: not a jlview object, ignoring")
         return(invisible(NULL))
@@ -19,7 +18,7 @@ jlview_release <- function(x) {
 #' Set the GC pressure threshold
 #'
 #' When total pinned bytes exceeds this threshold, jlview forces an R garbage
-#' collection to reclaim stale ALTREP objects. Default is 2GB.
+#' collection to reclaim stale ALTREP objects. Default is 10GB.
 #'
 #' @param bytes Threshold in bytes (numeric)
 #' @return Invisible `NULL`
@@ -64,5 +63,8 @@ jlview_gc_pressure <- function() {
 with_jlview <- function(julia_array, expr, writeable = FALSE, names = NULL, dimnames = NULL) {
     .x <- jlview(julia_array, writeable = writeable, names = names, dimnames = dimnames)
     on.exit(jlview_release(.x), add = TRUE)
+    # NSE: substitute captures the unevaluated expression, eval() evaluates it
+    # in with_jlview's frame where .x is bound. This is correct — .x is found
+    # in this function's environment, not the caller's.
     eval(substitute(expr))
 }
