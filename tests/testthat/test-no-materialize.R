@@ -162,7 +162,7 @@ test_that("memory does not increase after colSums on large matrix", {
     m <- jlview(JuliaCall::julia_eval("_big_nomat", need_return = "Julia"))
 
     gc()
-    mem_before <- gc()[2, 2]  # Vcells MB
+    mem_before <- gc()[2, 2] # Vcells MB
 
     cs <- colSums(m)
 
@@ -173,5 +173,5 @@ test_that("memory does not increase after colSums on large matrix", {
     # Without the fix this would increase by ~38 MB (5000*1000*8 bytes)
     expect_true(is_jlview(m))
     expect_false(jlview_info(m)$materialized)
-    expect_lt(mem_after - mem_before, 5)  # less than 5 MB increase
+    expect_lt(mem_after - mem_before, 5) # less than 5 MB increase
 })

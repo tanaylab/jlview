@@ -17,11 +17,11 @@ Creates a zero-copy ALTREP view of a Julia NamedArray vector,
 preserving the axis names.
 }
 \examples{
-if (interactive()) {
-    JuliaCall::julia_setup()
-    JuliaCall::julia_command("using NamedArrays")
-    v <- JuliaCall::julia_eval('NamedArray([1.0, 2.0, 3.0], (["a", "b", "c"],))')
-    x <- jlview_named_vector(v)
-    names(x) # returns c("a", "b", "c")
+\dontrun{
+JuliaCall::julia_setup()
+JuliaCall::julia_command("using NamedArrays")
+v <- JuliaCall::julia_eval('NamedArray([1.0, 2.0, 3.0], (["a", "b", "c"],))')
+x <- jlview_named_vector(v)
+names(x) # returns c("a", "b", "c")
 }
 }

@@ -29,11 +29,11 @@ avoiding data copying. Modifications to the R object trigger
 copy-on-write (unless \code{writeable = TRUE}).
 }
 \examples{
-if (interactive()) {
-    JuliaCall::julia_setup()
-    # Create a Julia array and view it in R without copying
-    JuliaCall::julia_command("x = randn(1000)")
-    x <- jlview(JuliaCall::julia_eval("x"))
-    sum(x) # operates directly on Julia memory
+\dontrun{
+JuliaCall::julia_setup()
+# Create a Julia array and view it in R without copying
+JuliaCall::julia_command("x = randn(1000)")
+x <- jlview(JuliaCall::julia_eval("x"))
+sum(x) # operates directly on Julia memory
 }
 }

@@ -16,12 +16,12 @@
 #' @importClassesFrom Matrix dgCMatrix
 #' @export
 #' @examples
-#' if (interactive()) {
-#'     JuliaCall::julia_setup()
-#'     JuliaCall::julia_command("using SparseArrays")
-#'     m <- JuliaCall::julia_eval("sprand(Float64, 100, 50, 0.1)")
-#'     s <- jlview_sparse(m)
-#'     class(s) # "dgCMatrix"
+#' \dontrun{
+#' JuliaCall::julia_setup()
+#' JuliaCall::julia_command("using SparseArrays")
+#' m <- JuliaCall::julia_eval("sprand(Float64, 100, 50, 0.1)")
+#' s <- jlview_sparse(m)
+#' class(s) # "dgCMatrix"
 #' }
 jlview_sparse <- function(julia_sparse_matrix, lazy_indices = FALSE) {
     jlview_ensure_init()
