@@ -127,4 +127,5 @@ SEXP C_is_jlview(SEXP x);
 SEXP C_jlview_info(SEXP x);
 SEXP C_jlview_set_gc_threshold(SEXP bytes);
 SEXP C_jlview_gc_pressure(void);
+SEXP C_jlview_pin_id(SEXP x);
 #endif /* JLVIEW_H */

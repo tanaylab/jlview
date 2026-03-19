@@ -3,6 +3,7 @@
 module JlviewSupport
 
 using SparseArrays
+using Statistics
 
 # ── Pin/Unpin infrastructure ──
 
@@ -260,6 +261,136 @@ function pinned_maximum(id::UInt64)::Float64
     arr = lock(PINNED_LOCK) do; get(PINNED, id, nothing); end
     arr === nothing && error("array not pinned")
     return Float64(maximum(arr))
+end
+
+# ── Transform operations (compute on pinned arrays, return new Julia array) ──
+
+"""
+Compute log2(x .+ scalar) on a pinned array and return the result array.
+The input array is looked up by pin_id from the PINNED dict.
+The caller is responsible for pinning the result (e.g., via jlview()).
+"""
+function transform_log2p(id, scalar::Real)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    return log2.(Float64.(arr) .+ Float64(scalar))
+end
+
+"""
+Sweep a summary statistic from a pinned matrix via broadcast operations.
+Margin 1 = rows, margin 2 = columns. Op is one of "/", "*", "-", "+".
+The input array is looked up by pin_id from the PINNED dict.
+The caller is responsible for pinning the result (e.g., via jlview()).
+"""
+function transform_sweep(id, stats::Vector{Float64}, margin::Int, op::String)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    mat = Float64.(arr)
+    if margin == 2  # columns: stats has length ncols
+        s = reshape(stats, 1, :)
+        if op == "/"
+            return mat ./ s
+        elseif op == "*"
+            return mat .* s
+        elseif op == "-"
+            return mat .- s
+        elseif op == "+"
+            return mat .+ s
+        end
+    elseif margin == 1  # rows: stats has length nrows
+        if op == "/"
+            return mat ./ stats
+        elseif op == "*"
+            return mat .* stats
+        elseif op == "-"
+            return mat .- stats
+        elseif op == "+"
+            return mat .+ stats
+        end
+    end
+    error("invalid margin=$margin or op=$op")
+end
+
+"""
+Transpose a pinned 2D matrix and return the result as a new contiguous array.
+The input array is looked up by pin_id from the PINNED dict.
+The caller is responsible for pinning the result (e.g., via jlview()).
+"""
+function transform_transpose(id)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    return collect(permutedims(Float64.(arr)))
+end
+
+"""
+Compute column-wise maximums of a pinned 2D matrix.
+Returns a 1D vector of length ncols.
+"""
+function transform_colMaxs(id)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    mat = Float64.(arr)
+    return vec(maximum(mat, dims=1))
+end
+
+"""
+Compute row-wise medians of a pinned 2D matrix.
+Returns a 1D vector of length nrows.
+"""
+function transform_rowMedians(id)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    mat = Float64.(arr)
+    n = size(mat, 2)
+    result = Vector{Float64}(undef, size(mat, 1))
+    for i in 1:size(mat, 1)
+        row = sort(mat[i, :])
+        result[i] = isodd(n) ? row[div(n+1,2)] : (row[div(n,2)] + row[div(n,2)+1]) / 2
+    end
+    return result
+end
+
+"""
+Compute column-wise means of a pinned 2D matrix.
+Returns a 1D vector of length ncols.
+"""
+function transform_colMeans(id)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    mat = Float64.(arr)
+    return vec(mean(mat, dims=1))
+end
+
+"""
+Compute row-wise means of a pinned 2D matrix.
+Returns a 1D vector of length nrows.
+"""
+function transform_rowMeans(id)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    mat = Float64.(arr)
+    return vec(mean(mat, dims=2))
 end
 
 end # module JlviewSupport

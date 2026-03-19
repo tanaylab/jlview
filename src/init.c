@@ -13,6 +13,7 @@ static const R_CallMethodDef callMethods[] = {
     {"C_jlview_info",             (DL_FUNC) &C_jlview_info,             1},
     {"C_jlview_set_gc_threshold", (DL_FUNC) &C_jlview_set_gc_threshold, 1},
     {"C_jlview_gc_pressure",      (DL_FUNC) &C_jlview_gc_pressure,      0},
+    {"C_jlview_pin_id",           (DL_FUNC) &C_jlview_pin_id,           1},
     {NULL, NULL, 0}
 };
 
@@ -120,4 +121,26 @@ SEXP C_jlview_info(SEXP x) {
     Rf_setAttrib(result, R_NamesSymbol, names);
     UNPROTECT(2);
     return result;
+}
+
+/* ===========================================================================
+ * C_jlview_pin_id — extract the Julia pin_id from a jlview ALTREP object.
+ *
+ * Returns the pin_id as a scalar double (uint64 values used as pin IDs
+ * are small enough to be represented exactly in double).
+ * Returns NA_real_ if the object is not a jlview or has been released.
+ * =========================================================================== */
+SEXP C_jlview_pin_id(SEXP x) {
+    if (!ALTREP(x)) return Rf_ScalarReal(NA_REAL);
+
+    SEXP extptr = R_altrep_data1(x);
+    if (TYPEOF(extptr) != EXTPTRSXP) return Rf_ScalarReal(NA_REAL);
+    if (R_ExternalPtrAddr(extptr) == NULL) return Rf_ScalarReal(NA_REAL);
+
+    SEXP pin_id_sexp = R_ExternalPtrTag(extptr);
+    if (pin_id_sexp == R_NilValue) return Rf_ScalarReal(NA_REAL);
+
+    uint64_t pin_id;
+    memcpy(&pin_id, RAW(pin_id_sexp), sizeof(uint64_t));
+    return Rf_ScalarReal((double)pin_id);
 }
