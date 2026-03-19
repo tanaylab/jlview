@@ -189,3 +189,13 @@ test_that("matrix with >0 rows but 0 columns", {
     expect_equal(dim(x), c(5L, 0L))
     expect_equal(length(x), 0L)
 })
+
+test_that("9D+ arrays are rejected with an error", {
+    skip_if(!JULIA_AVAILABLE, "Julia not available")
+
+    jl_arr <- JuliaCall::julia_eval(
+        "reshape(collect(1.0:512.0), ntuple(_ -> 2, 9))",
+        need_return = "Julia"
+    )
+    expect_error(jlview(jl_arr), "more than 8 dimensions")
+})

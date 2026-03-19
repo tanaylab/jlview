@@ -63,8 +63,8 @@ jlview_gc_pressure <- function() {
 with_jlview <- function(julia_array, expr, writeable = FALSE, names = NULL, dimnames = NULL) {
     .x <- jlview(julia_array, writeable = writeable, names = names, dimnames = dimnames)
     on.exit(jlview_release(.x), add = TRUE)
-    # NSE: substitute captures the unevaluated expression, eval() evaluates it
-    # in with_jlview's frame where .x is bound. This is correct — .x is found
-    # in this function's environment, not the caller's.
-    eval(substitute(expr))
+    # Evaluate in an environment that has .x but inherits from the caller's
+    # frame, so both .x and the caller's local variables are accessible.
+    eval_env <- list2env(list(.x = .x), parent = parent.frame())
+    eval(substitute(expr), envir = eval_env)
 }

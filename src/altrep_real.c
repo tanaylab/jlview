@@ -142,6 +142,9 @@ static int jlview_real_No_NA(SEXP x) {
  * =========================================================================== */
 
 static SEXP jlview_real_Sum(SEXP x, Rboolean narm) {
+    /* If na.rm=TRUE, fall back to R — Julia's sum() doesn't skip NaN */
+    if (narm) return NULL;
+
     /* If materialized, fall back to R's default (cache may contain NAs) */
     SEXP cached = VECTOR_ELT(R_altrep_data2(x), 2);
     if (cached != R_NilValue) return NULL;
@@ -165,6 +168,8 @@ static SEXP jlview_real_Sum(SEXP x, Rboolean narm) {
 }
 
 static SEXP jlview_real_Min(SEXP x, Rboolean narm) {
+    if (narm) return NULL;
+
     SEXP cached = VECTOR_ELT(R_altrep_data2(x), 2);
     if (cached != R_NilValue) return NULL;
 
@@ -187,6 +192,8 @@ static SEXP jlview_real_Min(SEXP x, Rboolean narm) {
 }
 
 static SEXP jlview_real_Max(SEXP x, Rboolean narm) {
+    if (narm) return NULL;
+
     SEXP cached = VECTOR_ELT(R_altrep_data2(x), 2);
     if (cached != R_NilValue) return NULL;
 

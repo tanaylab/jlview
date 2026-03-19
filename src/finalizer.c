@@ -194,9 +194,13 @@ SEXP C_jlview_create(SEXP julia_array_sexp, SEXP writeable_sexp,
         Rf_error("jlview: failed to extract PinInfo fields from Julia");
     }
 
+    if (nd > 8) {
+        Rf_error("jlview: arrays with more than 8 dimensions are not supported (got %d)", nd);
+    }
+
     int64_t total_len = 1;
-    int dims[8];  /* max 8 dimensions (practical limit) */
-    for (int d = 0; d < nd && d < 8; d++) {
+    int dims[8];
+    for (int d = 0; d < nd; d++) {
         dims[d] = (int)dims_data[d];
         total_len *= dims[d];
     }
