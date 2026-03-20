@@ -10,29 +10,52 @@
 #' Computes fold-change by dividing each row by its median across columns.
 #' This is a common bioinformatics normalization step (EGC to fold-change/footprint).
 #'
-#' Uses \code{matrixStats::rowMedians} for the computation, which works
-#' directly on jlview ALTREP data via \code{REAL()} without materialization.
+#' For jlview inputs, the entire computation (optional epsilon addition, row medians,
+#' and division) is performed in Julia on the pinned array, returning a new jlview
+#' ALTREP object without materializing the input. For non-jlview inputs, falls back
+#' to \code{matrixStats::rowMedians} in R.
 #'
 #' @param x A jlview matrix or regular matrix
+#' @param epsilon Scalar to add to each element before computing fold-change.
+#'   Default 0 (no addition). When non-zero, fuses the \code{x + epsilon} and
+#'   \code{x / rowMedians(x)} steps into a single Julia call, avoiding an
+#'   intermediate R materialization.
 #' @return Fold-change matrix (same dimensions as input). If input is jlview,
-#'   the arithmetic \code{x / meds} will trigger materialization since R creates
-#'   a new result matrix.
+#'   the result is also a jlview ALTREP object (zero-copy from Julia).
 #' @export
-jlview_fp <- function(x) {
-    if (!requireNamespace("matrixStats", quietly = TRUE)) {
-        stop("jlview_fp requires the matrixStats package")
+jlview_fp <- function(x, epsilon = 0) {
+    if (!is_jlview(x)) {
+        if (!requireNamespace("matrixStats", quietly = TRUE)) {
+            stop("jlview_fp requires the matrixStats package for non-jlview inputs")
+        }
+        if (epsilon != 0) {
+            x <- x + epsilon
+        }
+        dn <- dimnames(x)
+        meds <- matrixStats::rowMedians(as.matrix(x), na.rm = TRUE)
+        result <- x / meds
+        if (!is.null(dn) && is.null(dimnames(result))) {
+            dimnames(result) <- dn
+        }
+        return(result)
     }
+
+    # jlview path: do the entire computation in Julia (epsilon + medians + divide)
+    jlview_ensure_init()
+
+    pin_id <- .Call("C_jlview_pin_id", x, PACKAGE = "jlview")
+    if (is.na(pin_id)) {
+        stop("jlview_fp: cannot access released jlview object")
+    }
+
+    result_jl <- JuliaCall::julia_call(
+        "JlviewSupport.transform_fp",
+        pin_id, as.numeric(epsilon),
+        need_return = "Julia"
+    )
 
     dn <- dimnames(x)
-    meds <- matrixStats::rowMedians(x, na.rm = TRUE)
-    result <- x / meds
-
-    # Preserve dimnames if lost during arithmetic (e.g., jlview / vector)
-    if (!is.null(dn) && is.null(dimnames(result))) {
-        dimnames(result) <- dn
-    }
-
-    return(result)
+    jlview(result_jl, dimnames = dn)
 }
 
 #' Find top-2 row indices and values per column

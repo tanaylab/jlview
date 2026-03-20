@@ -398,14 +398,22 @@ Compute fold-change: divide each row of a pinned 2D matrix by its row median.
 Returns a new matrix of the same size.
 The input array is looked up by pin_id from the PINNED dict.
 Transposes to column-major-friendly layout for row-wise median computation.
+
+If `epsilon > 0`, adds epsilon to each element before computing medians and dividing.
+This fuses the `x + epsilon` and `x / rowMedians(x)` steps into a single pass,
+avoiding an intermediate allocation.
 """
-function transform_fp(id)
+function transform_fp(id, epsilon::Real=0.0)
     uid = UInt64(id)
     arr = lock(PINNED_LOCK) do
         get(PINNED, uid, nothing)
     end
     arr === nothing && error("array not pinned (id=$uid)")
     mat = Float64.(arr)
+    eps = Float64(epsilon)
+    if eps != 0.0
+        mat = mat .+ eps
+    end
     nrows, ncols = size(mat)
 
     # Transpose to make "rows" into contiguous columns for cache-friendly access

@@ -95,3 +95,47 @@ test_that("fp non-jlview fallback", {
     expect_false(is_jlview(result))
     expect_true(max(abs(result - expected)) < 1e-10)
 })
+
+test_that("fp with epsilon fuses addition and division (jlview path)", {
+    skip_if(!JULIA_AVAILABLE, "Julia not available")
+
+    JuliaCall::julia_command("test_fp_eps = reshape(collect(0.0:11.0), 3, 4)")
+    jl_mat <- JuliaCall::julia_eval("test_fp_eps", need_return = "Julia")
+    x <- jlview(jl_mat)
+
+    eps <- 1e-5
+    result <- jlview_fp(x, epsilon = eps)
+
+    # Expected: (x + eps) / rowMedians(x + eps)
+    mat <- as.matrix(x) + eps
+    expected <- mat / matrixStats::rowMedians(mat)
+
+    expect_true(is_jlview(result))
+    expect_equal(dim(result), c(3L, 4L))
+    expect_true(max(abs(as.matrix(result) - expected)) < 1e-10)
+})
+
+test_that("fp with epsilon=0 is identical to no epsilon (jlview path)", {
+    skip_if(!JULIA_AVAILABLE, "Julia not available")
+
+    JuliaCall::julia_command("test_fp_noeps = reshape(collect(1.0:12.0), 3, 4)")
+    jl_mat <- JuliaCall::julia_eval("test_fp_noeps", need_return = "Julia")
+    x <- jlview(jl_mat)
+
+    result0 <- as.matrix(jlview_fp(x, epsilon = 0))
+    result_default <- as.matrix(jlview_fp(x))
+
+    expect_true(max(abs(result0 - result_default)) < 1e-15)
+})
+
+test_that("fp with epsilon non-jlview fallback", {
+    mat <- matrix(c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8), nrow = 3, ncol = 3)
+
+    eps <- 1e-5
+    result <- jlview_fp(mat, epsilon = eps)
+    mat_eps <- mat + eps
+    expected <- mat_eps / matrixStats::rowMedians(mat_eps)
+
+    expect_false(is_jlview(result))
+    expect_true(max(abs(result - expected)) < 1e-10)
+})
