@@ -418,4 +418,78 @@ function transform_fp(id)
     return mat ./ medians
 end
 
+"""
+Find top-2 row indices and values per column of a pinned 2D matrix.
+For a gene x metacell matrix, this returns the top-2 genes per metacell.
+Returns: (top1_idx, top2_idx, top1_val, top2_val) as 1-indexed Int32/Float64 vectors.
+"""
+function transform_top2_per_col(id)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    mat = Float64.(arr)
+    nrows, ncols = size(mat)
+    top1_idx = Vector{Int32}(undef, ncols)
+    top2_idx = Vector{Int32}(undef, ncols)
+    top1_val = Vector{Float64}(undef, ncols)
+    top2_val = Vector{Float64}(undef, ncols)
+    for j in 1:ncols
+        best1_i = 1; best1_v = mat[1, j]
+        best2_i = 1; best2_v = -Inf
+        for i in 2:nrows
+            v = mat[i, j]
+            if v > best1_v
+                best2_i = best1_i; best2_v = best1_v
+                best1_i = i; best1_v = v
+            elseif v > best2_v
+                best2_i = i; best2_v = v
+            end
+        end
+        top1_idx[j] = best1_i
+        top2_idx[j] = best2_i
+        top1_val[j] = best1_v
+        top2_val[j] = best2_v
+    end
+    return (top1_idx, top2_idx, top1_val, top2_val)
+end
+
+"""
+Find top-2 column indices and values per row of a pinned 2D matrix.
+For a metacell x gene matrix, this returns the top-2 genes per metacell.
+Returns: (top1_idx, top2_idx, top1_val, top2_val) as 1-indexed Int32/Float64 vectors.
+"""
+function transform_top2_per_row(id)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    mat = Float64.(arr)
+    nrows, ncols = size(mat)
+    top1_idx = Vector{Int32}(undef, nrows)
+    top2_idx = Vector{Int32}(undef, nrows)
+    top1_val = Vector{Float64}(undef, nrows)
+    top2_val = Vector{Float64}(undef, nrows)
+    for i in 1:nrows
+        best1_j = 1; best1_v = mat[i, 1]
+        best2_j = 1; best2_v = -Inf
+        for j in 2:ncols
+            v = mat[i, j]
+            if v > best1_v
+                best2_j = best1_j; best2_v = best1_v
+                best1_j = j; best1_v = v
+            elseif v > best2_v
+                best2_j = j; best2_v = v
+            end
+        end
+        top1_idx[i] = best1_j
+        top2_idx[i] = best2_j
+        top1_val[i] = best1_v
+        top2_val[i] = best2_v
+    end
+    return (top1_idx, top2_idx, top1_val, top2_val)
+end
+
 end # module JlviewSupport
