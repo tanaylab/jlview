@@ -393,4 +393,29 @@ function transform_rowMeans(id)
     return vec(mean(mat, dims=2))
 end
 
+"""
+Compute fold-change: divide each row of a pinned 2D matrix by its row median.
+Returns a new matrix of the same size.
+The input array is looked up by pin_id from the PINNED dict.
+Transposes to column-major-friendly layout for row-wise median computation.
+"""
+function transform_fp(id)
+    uid = UInt64(id)
+    arr = lock(PINNED_LOCK) do
+        get(PINNED, uid, nothing)
+    end
+    arr === nothing && error("array not pinned (id=$uid)")
+    mat = Float64.(arr)
+    nrows, ncols = size(mat)
+
+    # Transpose to make "rows" into contiguous columns for cache-friendly access
+    matt = permutedims(mat)  # ncols x nrows, column j = original row j
+    medians = Vector{Float64}(undef, nrows)
+    for j in 1:nrows
+        col = matt[:, j]  # contiguous copy of original row j
+        medians[j] = median!(col)  # in-place median (partialsort)
+    end
+    return mat ./ medians
+end
+
 end # module JlviewSupport
