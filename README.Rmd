@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # jlview — Zero-Copy Julia↔R Arrays via ALTREP
 
 <!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/misha)](https://CRAN.R-project.org/package=misha)
 [![R-CMD-check](https://github.com/tanaylab/jlview/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tanaylab/jlview/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -31,6 +32,12 @@ jlview provides zero-copy R views of Julia-owned arrays using R's ALTREP (Altern
 
 ## Installation
 
+You can install the package from CRAN:
+```r
+install.packages("jlview")
+```
+
+Or you can install the package from GitHub:
 ```r
 # install.packages("remotes")
 remotes::install_github("tanaylab/jlview")

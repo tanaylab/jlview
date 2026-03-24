@@ -5,6 +5,8 @@
 
 <!-- badges: start -->
 
+[![CRAN
+status](https://www.r-pkg.org/badges/version/misha)](https://CRAN.R-project.org/package=misha)
 [![R-CMD-check](https://github.com/tanaylab/jlview/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tanaylab/jlview/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -22,6 +24,14 @@ into Julia’s memory.
 *Benchmark: 50K × 25K Float64 matrix (9.3 GB)*
 
 ## Installation
+
+You can install the package from CRAN:
+
+``` r
+install.packages("jlview")
+```
+
+Or you can install the package from GitHub:
 
 ``` r
 # install.packages("remotes")
