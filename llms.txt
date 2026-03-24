@@ -15,6 +15,14 @@ into Julia’s memory.
 
 ## Installation
 
+You can install the package from CRAN:
+
+``` r
+install.packages("jlview")
+```
+
+Or you can install the package from GitHub:
+
 ``` r
 # install.packages("remotes")
 remotes::install_github("tanaylab/jlview")
