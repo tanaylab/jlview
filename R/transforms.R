@@ -200,6 +200,7 @@ jlview_colMaxs <- function(x) {
 #'
 #' @param x A jlview matrix or numeric matrix
 #' @return A named numeric vector of length \code{nrow(x)}.
+#' @importFrom stats median
 #' @export
 jlview_rowMedians <- function(x) {
     if (!is_jlview(x)) {

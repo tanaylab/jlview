@@ -143,6 +143,7 @@ test_that("integer colSums does not materialize", {
 
 test_that("named matrix colSums does not materialize", {
     skip_if(!JULIA_AVAILABLE, "Julia not available")
+    skip_if(!JL_NAMED_ARRAYS_AVAILABLE, "Julia NamedArrays not available")
 
     JuliaCall::julia_command("using NamedArrays")
     JuliaCall::julia_command("_nm_cs = NamedArray(randn(50, 20))")

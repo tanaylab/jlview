@@ -1,5 +1,6 @@
 test_that("named vector has correct names", {
     skip_if(!JULIA_AVAILABLE, "Julia not available")
+    skip_if(!JL_NAMED_ARRAYS_AVAILABLE, "Julia NamedArrays not available")
 
     JuliaCall::julia_command("using NamedArrays")
     jl_vec <- JuliaCall::julia_eval(
@@ -13,6 +14,7 @@ test_that("named vector has correct names", {
 
 test_that("named vector has correct values", {
     skip_if(!JULIA_AVAILABLE, "Julia not available")
+    skip_if(!JL_NAMED_ARRAYS_AVAILABLE, "Julia NamedArrays not available")
 
     JuliaCall::julia_command("using NamedArrays")
     jl_vec <- JuliaCall::julia_eval(
@@ -26,6 +28,7 @@ test_that("named vector has correct values", {
 
 test_that("named matrix has correct rownames and colnames", {
     skip_if(!JULIA_AVAILABLE, "Julia not available")
+    skip_if(!JL_NAMED_ARRAYS_AVAILABLE, "Julia NamedArrays not available")
 
     JuliaCall::julia_command("using NamedArrays")
     jl_mat <- JuliaCall::julia_eval(
@@ -40,6 +43,7 @@ test_that("named matrix has correct rownames and colnames", {
 
 test_that("named matrix colSums works correctly", {
     skip_if(!JULIA_AVAILABLE, "Julia not available")
+    skip_if(!JL_NAMED_ARRAYS_AVAILABLE, "Julia NamedArrays not available")
 
     JuliaCall::julia_command("using NamedArrays")
     jl_mat <- JuliaCall::julia_eval(
