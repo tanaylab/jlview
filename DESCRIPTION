@@ -1,6 +1,6 @@
 Package: jlview
 Title: Zero-Copy Julia to R Array Bridge via ALTREP
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-8458-9507")),    
