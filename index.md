@@ -18,12 +18,14 @@ into Julia’s memory.
 You can install the package from CRAN:
 
 ``` r
+
 install.packages("jlview")
 ```
 
 Or you can install the package from GitHub:
 
 ``` r
+
 # install.packages("remotes")
 remotes::install_github("tanaylab/jlview")
 ```
@@ -37,6 +39,7 @@ remotes::install_github("tanaylab/jlview")
 ## Usage
 
 ``` r
+
 library(jlview)
 JuliaCall::julia_setup()
 

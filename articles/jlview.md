@@ -30,6 +30,7 @@ buffer with zero additional allocation.
 Install jlview from GitHub:
 
 ``` r
+
 # install.packages("remotes")
 remotes::install_github("tanaylab/jlview")
 ```
@@ -37,6 +38,7 @@ remotes::install_github("tanaylab/jlview")
 Before using jlview, initialize the Julia runtime via JuliaCall:
 
 ``` r
+
 library(jlview)
 JuliaCall::julia_setup()
 ```
@@ -52,6 +54,7 @@ automatically load its Julia-side support module when you first call
 Create a Julia vector and wrap it in an ALTREP view:
 
 ``` r
+
 JuliaCall::julia_command("v = randn(100_000)")
 x <- jlview(JuliaCall::julia_eval("v"))
 
@@ -65,6 +68,7 @@ x[1:5] # subsetting works as usual
 Two-dimensional Julia arrays become R matrices with proper dimensions:
 
 ``` r
+
 JuliaCall::julia_command("M = randn(1000, 500)")
 m <- jlview(JuliaCall::julia_eval("M"))
 
@@ -79,6 +83,7 @@ You can confirm that no R-side allocation occurred by checking
 `is.altrep()`:
 
 ``` r
+
 .Internal(inspect(x))
 # Should show ALTREP wrapper, not a materialized REALSXP
 ```
@@ -121,6 +126,7 @@ materialization.
 ### Named Vectors
 
 ``` r
+
 JuliaCall::julia_command("using NamedArrays")
 JuliaCall::julia_command('nv = NamedArray([10.0, 20.0, 30.0], (["a", "b", "c"],))')
 x <- jlview_named_vector(JuliaCall::julia_eval("nv"))
@@ -132,6 +138,7 @@ x["b"] # 20, still zero-copy for the data
 ### Named Matrices
 
 ``` r
+
 JuliaCall::julia_command('nm = NamedArray(randn(3, 2), (["r1","r2","r3"], ["c1","c2"]))')
 m <- jlview_named_matrix(JuliaCall::julia_eval("nm"))
 
@@ -157,6 +164,7 @@ constructs a dgCMatrix where the nonzero values (`x` slot) are backed by
 a zero-copy ALTREP view of Julia’s `nzval` array.
 
 ``` r
+
 JuliaCall::julia_command("using SparseArrays")
 JuliaCall::julia_command("sp = sprand(Float64, 10000, 5000, 0.01)")
 s <- jlview_sparse(JuliaCall::julia_eval("sp"))
@@ -196,6 +204,7 @@ means Julia memory is held as long as the R ALTREP object exists.
 ### Explicit Release
 
 ``` r
+
 m <- jlview(JuliaCall::julia_eval("randn(10000, 1000)"))
 # ... use m ...
 jlview_release(m)
@@ -208,6 +217,7 @@ jlview_release(m)
 guarantees release even if an error occurs:
 
 ``` r
+
 result <- with_jlview(JuliaCall::julia_eval("randn(100000)"), {
     c(mean(.x), sd(.x))
 })
@@ -217,6 +227,7 @@ result <- with_jlview(JuliaCall::julia_eval("randn(100000)"), {
 ### Tuning GC Pressure
 
 ``` r
+
 # Check current state
 jlview_gc_pressure()
 # $pinned_bytes
@@ -237,6 +248,7 @@ the data from Julia, and the ALTREP wrapper is replaced by a standard R
 vector.
 
 ``` r
+
 x <- jlview(JuliaCall::julia_eval("collect(1.0:5.0)"))
 y <- x # y and x share Julia memory, no copy
 sum(y) # zero-copy read
@@ -259,6 +271,7 @@ materialized into a standard R vector (since Julia memory cannot be
 serialized). On load, you get back a regular R vector.
 
 ``` r
+
 x <- jlview(JuliaCall::julia_eval("randn(1000)"))
 saveRDS(x, "my_vector.rds")
 
